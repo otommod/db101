@@ -1,6 +1,6 @@
 INSERT INTO Doctor(name, specialty, exp) VALUES
-    ('George', 'general', 5),
-    ('Babis', 'surgeon', 15);
+    ('Dr.George', 'general', 5),
+    ('Dr.Babis', 'surgeon', 15);
 
 INSERT INTO Patient(doctor_id, name, age, address) VALUES
     (1, 'Miltos', 22, 'Athens'),
