@@ -1,9 +1,15 @@
 import wx
 
 
-class Window(wx.Frame):
-    def __init__(self, foo):
-        self.foo = foo
+SELECT Drug.name,Sell.price,Drug.formula 
+FROM Sell JOIN Drug
+ON Sell.pharmacy_id=Drug.id;
 
-    def on_click(self, event):
-        self.foo.show_gif(event)
+SELECT Doctor.*,Patient.name
+FROM Doctor LEFT JOIN Patient
+ON Doctor.id=Patient.id;
+
+SELECT Doctor.name,max(exp)
+FROM Doctor
+WHERE specialty = 'surgeon'
+GROUP BY Doctor;
