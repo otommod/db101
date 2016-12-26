@@ -14,13 +14,16 @@ INSERT INTO BigPharma(name, phone) VALUES
     ('AtticaDrugs', '210-6359632');
 
 INSERT INTO Pharmacy(name, address, phone) VALUES
-    ('Pharmacy1', 'Agias Elenis 8, Athens', '210-8977502');
+    ('Pharmacy1', 'Agias Elenis 8, Athens', '210-8977502'),
+    ('Pharmacy2', 'Synopis 7, Athens', '210-9063341');
 
 INSERT INTO Drug(bigpharma_id, name, formula) VALUES
-    (1, 'Laferol', 'CONBa');
+    (1, 'Laferol', 'CaONBa'),
+    (1, 'Nitropol', 'NC2');
 
 INSERT INTO Sell(pharmacy_id, drug_id, price) VALUES
-    (1, 1, 105);
+    (1, 1, 105),
+    (2, 2, 33);
 
 INSERT INTO Prescription(patient_id, doctor_id, drug_id, date, dosage) VALUES
     (2, 1, 1, '2016-05-14', 2),
