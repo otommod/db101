@@ -22,9 +22,25 @@ SELECT Patient.name AS patient,
        date,
        dosage
 FROM
-    Prescription
-    JOIN Patient ON Patient.id = Prescription.patient_id
-    JOIN Doctor ON Doctor.id = Prescription.doctor_id
-    JOIN Drug ON Drug.id = Prescription.drug_id
-    JOIN Sell ON Sell.drug_id = Prescription.drug_id AND Sell.pharmacy_id = $1;
+  Prescription
+  JOIN Patient ON Patient.id = Prescription.patient_id
+  JOIN Doctor ON Doctor.id = Prescription.doctor_id
+  JOIN Drug ON Drug.id = Prescription.drug_id
+  JOIN Sell ON Sell.drug_id = Prescription.drug_id AND Sell.pharmacy_id = $1;
+"""
+
+AGGREGATE = """
+SELECT COUNT(id) FROM Patient;
+"""
+
+GROUP_BY = """
+SELECT COUNT(pharmacy_id)
+FROM Sells
+GROUP BY drug_id;
+"""
+
+ORDER_BY = """
+SELECT *
+FROM Contract
+ORDER BY end_date;
 """
