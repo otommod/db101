@@ -1,4 +1,5 @@
 import wx
+import psycopg2
 
 
 STATEMENT = """
@@ -6,7 +7,7 @@ SELECT Drug.name, BigPharma.name AS maker, Drug.formula, Sell.price FROM
   Drug
   JOIN BigPharma ON Drug.bigpharma_id = BigPharma.id
   JOIN Sell ON Drug.id = Sell.drug_id
-WHERE Sell.pharmacy_id = $1;
+WHERE Sell.pharmacy_id = %s;
 """
 
 STATEMENT2 = """
@@ -26,7 +27,7 @@ FROM
   JOIN Patient ON Patient.id = Prescription.patient_id
   JOIN Doctor ON Doctor.id = Prescription.doctor_id
   JOIN Drug ON Drug.id = Prescription.drug_id
-  JOIN Sell ON Sell.drug_id = Prescription.drug_id AND Sell.pharmacy_id = $1;
+  JOIN Sell ON Sell.drug_id = Prescription.drug_id AND Sell.pharmacy_id = %s;
 """
 
 AGGREGATE = """
@@ -44,3 +45,6 @@ SELECT *
 FROM Contract
 ORDER BY end_date;
 """
+
+conn = psycopg2.connect("dbname=db101 user=otto")
+cur = conn.cursor()
