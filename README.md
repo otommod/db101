@@ -1,6 +1,7 @@
 # db101
 
 ## queries
+
     * 2 joins
     * aggregate
     * group by
@@ -9,6 +10,7 @@
     * nested
 
 ## more
+
     * 2 views
         + none yet
     * 2 triggers
