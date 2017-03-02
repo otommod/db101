@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 
-from observable import event
+from .observable import event
 
 
 class Model:
@@ -75,10 +75,3 @@ class Controller:
 
     def on_money_change(self, new_amount):
         self.view.set_money(new_amount)
-
-
-if __name__ == '__main__':
-    root = tk.Tk()
-    root.withdraw()
-    app = Controller(root)
-    root.mainloop()
