@@ -1,0 +1,35 @@
+CREATE VIEW startsbefore AS
+GROUP_BY = """
+SELECT COUNT(id)
+FROM Contract
+GROUP BY bigpharma_id;
+HAVING start_date < %s;
+"""
+
+CREATE VIEW endsbefore AS
+GROUP_BY = """
+SELECT COUNT(id)
+FROM Contract
+GROUP BY bigpharma_id;
+HAVING end_date < %s;
+"""
+
+SELECT name FROM Patient
+    WHERE age > (SELECT exp FROM Doctor WHERE Doctor.id=Patient.doctor_id);
+
+SELECT name FROM Doctor
+    WHERE (SELECT avg(age) FROM Patient WHERE Patient.doctor_id = Doctor.id) > 50;
+
+-------------τα φαρμακα που χρησιμοποιουν οι γεροι
+
+CREATE OR REPLACE FUNCTION before_remove_contract() RETURNS trigger AS $$
+    BEGIN
+        DELETE FROM Sell WHERE pharmacy_id=OLD.pharmacy_id AND drug_id = ANY(SELECT id FROM Drug WHERE bigpharma_id=OLD.bigpharma_id);
+        RETURN OLD;
+    END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS before_remove_contract ON Contract;
+CREATE TRIGGER before_remove_contract
+    BEFORE DELETE ON Contract
+FOR EACH ROW EXECUTE PROCEDURE before_remove_contract();
