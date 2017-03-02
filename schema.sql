@@ -61,3 +61,14 @@ CREATE TABLE Contract (
   content TEXT,
   CONSTRAINT contract_key PRIMARY KEY (pharmacy_id, bigpharma_id)
 );
+
+
+CREATE OR REPLACE FUNCTION has_contract_for_drug(integer, integer) RETURNS bool AS $$
+    SELECT EXISTS(
+        SELECT * FROM
+            Contract
+            JOIN Drug ON Contract.bigpharma_id = Drug.bigpharma_id
+        WHERE Contract.pharmacy_id = $1 AND Drug.id = $2);
+$$ LANGUAGE 'SQL';
+
+ALTER TABLE Sell ADD CONSTRAINT has_contract CHECK (has_contract_for_drug(pharmacy_id, drug_id));
