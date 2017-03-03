@@ -45,6 +45,23 @@ FROM Contract
 ORDER BY end_date;
 """
 
+GROUP_BY_HAVING = """
+SELECT COUNT(id)
+FROM Contract
+GROUP BY bigpharma_id;
+HAVING end_date < %s;
+"""
+
+NESTED = """
+SELECT name FROM Patient
+    WHERE age > (SELECT exp FROM Doctor WHERE Doctor.id = Patient.doctor_id);
+"""
+
+NESTED2 = """
+SELECT name FROM Doctor
+    WHERE (SELECT AVG(age) FROM Patient WHERE Patient.doctor_id = Doctor.id) > 50;
+"""
+
 
 class Databaser:
     def __init__(self, user, dbname):
