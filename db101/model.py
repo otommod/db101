@@ -64,8 +64,15 @@ SELECT name FROM Doctor
 
 
 class Databaser:
-    def __init__(self, user, dbname):
-        self.conn = psycopg2.connect(dbname=dbname, user=user)
+    # TODO: The first time a command is executed, a new transaction is created.
+    # These need to be commited manually.  If not, the connection will sit in
+    # an "idle in transaction" state, even for simple SELECTs and that's not
+    # good.  Consider either autocommit mode or with blocks on the connection
+    # object.  These will not close the connection, rather, they will commit
+    # the transaction.
+
+    def __init__(self, conn):
+        self.conn = conn
 
     def patients_num(self):
         with self.conn.cursor() as cur:
