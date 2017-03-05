@@ -2,7 +2,7 @@ from tkinter import ttk
 from tkinter import font
 
 from ..observable import event
-from .singleentry import SingleEntry
+# from .singleentry import SingleEntry
 from .eventedscrollbar import EventedScrollbar
 
 
