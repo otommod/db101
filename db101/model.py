@@ -4,8 +4,8 @@ import psycopg2
 from psycopg2.sql import SQL, Identifier
 
 from .misc import valid_ident
-from .schema import SCHEMA
 from .observable import event
+from .schema import SCHEMA
 
 
 def namedtuple_wrapper(fields):

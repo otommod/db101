@@ -1,5 +1,4 @@
-from tkinter import ttk
-from tkinter import font
+from tkinter import font, ttk
 
 from ..observable import event
 # from .singleentry import SingleEntry
@@ -112,7 +111,7 @@ class EditableTreeview(ttk.Frame):
         # entry['readonlybackground'] = 'white'
 
         def commit_entry(*ignore):
-            self.tree.set(row, col, entry.get())
+            self.set(row, col, entry.get())
             entry.destroy()
 
         entry.focus_force()

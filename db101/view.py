@@ -41,3 +41,6 @@ class TableView:
         if colname in key:
             key[colname] = old_value
         print(key)
+
+        update = {colname: self.tree.set(row, col)}
+        self.t.set(key, **update)
