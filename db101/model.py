@@ -1,80 +1,24 @@
-import psycopg2
 from collections import namedtuple
 
+import psycopg2
+from psycopg2.sql import SQL, Identifier
+
+from .misc import valid_ident
 from .schema import SCHEMA
 from .observable import event
-from .querybuilder import QueryBuilder
-
-
-STATEMENT = """
-SELECT Drug.name, BigPharma.name AS maker, Drug.formula, Sell.price FROM
-  Drug
-  JOIN BigPharma ON Drug.bigpharma_id = BigPharma.id
-  JOIN Sell ON Drug.id = Sell.drug_id
-WHERE Sell.pharmacy_id = %s;
-"""
-
-STATEMENT2 = """
-SELECT Doctor.*, Patient.name FROM
-  Doctor
-  LEFT JOIN Patient ON Doctor.id = Patient.doctor_id;
-"""
-
-STATEMENT3 = """
-SELECT Patient.name AS patient,
-       Doctor.name AS doctor,
-       Drug.name AS drug,
-       date,
-       dosage
-FROM
-  Prescription
-  JOIN Patient ON Patient.id = Prescription.patient_id
-  JOIN Doctor ON Doctor.id = Prescription.doctor_id
-  JOIN Drug ON Drug.id = Prescription.drug_id
-  JOIN Sell ON Sell.drug_id = Prescription.drug_id AND Sell.pharmacy_id = %s;
-"""
-
-AGGREGATE = """
-SELECT COUNT(id) FROM Patient;
-"""
-
-GROUP_BY = """
-SELECT COUNT(pharmacy_id)
-FROM Sells
-GROUP BY drug_id;
-"""
-
-ORDER_BY = """
-SELECT *
-FROM Contract
-ORDER BY end_date;
-"""
-
-GROUP_BY_HAVING = """
-SELECT COUNT(id)
-FROM Contract
-GROUP BY bigpharma_id;
-HAVING end_date < %s;
-"""
-
-NESTED = """
-SELECT name FROM Patient
-    WHERE age > (SELECT exp FROM Doctor WHERE Doctor.id = Patient.doctor_id);
-"""
-
-NESTED2 = """
-SELECT name FROM Doctor
-    WHERE (SELECT AVG(age) FROM Patient WHERE Patient.doctor_id = Doctor.id) > 50;
-"""
-
-
-def valid_ident(ident):
-    return ident.isidentifier()
 
 
 def namedtuple_wrapper(fields):
     assert all(valid_ident(f) for f in fields)
     return namedtuple("row", fields)
+
+
+class InvalidKeyError(Exception):
+    pass
+
+
+class InvalidOperationError(Exception):
+    pass
 
 
 class SQLDriver:
@@ -87,28 +31,71 @@ class SQLDriver:
 
     def __init__(self, conn):
         self.conn = conn
+        self.conn.autocommit = True
 
-    def execute(self, query):
+    def execute(self, query, *args, **kwargs):
         with self.conn.cursor() as cur:
-            cur.execute(query)
-            return cur.fetchall()
+            cur.execute(query, *args, **kwargs)
+            try:
+                return cur.fetchall()
+            except psycopg2.ProgrammingError:
+                pass
+
+
+class QueryBuilder:
+    def __init__(self, tablename, pk_fields):
+        if not isinstance(pk_fields, (list, tuple)):
+            pk_fields = [pk_fields]
+
+        self.table = Identifier(tablename)
+        self.key = SQL(" AND ").join(
+            Identifier(f) + SQL(" = %%(key_%s)s" % f) for f in pk_fields)
+
+    def select(self, *columns, order_by="", descending=False):
+        ordering = Identifier(order_by)
+        selection = SQL(", ").join(Identifier(c) for c in columns)
+
+        if not order_by:
+            return SQL("SELECT {0} FROM {1};").format(
+                selection, self.table)
+        elif descending:
+            return SQL("SELECT {0} FROM {1} ORDER BY {2} DESC;").format(
+                selection, self.table, ordering)
+        else:
+            return SQL("SELECT {0} FROM {1} ORDER BY {2};").format(
+                selection, self.table, ordering)
+
+    def insert(self, item):
+        "INSERT INTO {0} ({1}) VALUES {2};"
+        pass
+
+    def update(self, *fields):
+        return SQL("UPDATE {0} SET {1} WHERE {2};").format(
+            self.table,
+            SQL(", ").join(
+                Identifier(f) + SQL(" = %%(new_%s)s" % f) for f in fields),
+            self.key)
+
+    def delete(self, key_field):
+        return SQL("DELETE FROM {0} WHERE {1};").format(
+            self.table, self.key)
 
 
 class Table:
     def __init__(self, db, name, key, fields):
-        self.db = db
         self.name = name
         self.key = key
         self.fields = fields
-        self.qb = QueryBuilder(name, key)
+
+        self._db = db
+        self._qb = QueryBuilder(name, key)
 
     @event
     def changed():
         pass
 
-    def get(self, *fields, order_by="", descending=False):
-        return self.db.get(self.name, *fields,
-                           order_by=order_by, descending=descending)
+    def __getattr__(self, attr):
+        return getattr(self._db, attr)
 
 
 class SQLModel:
@@ -139,22 +126,39 @@ class SQLModel:
         t = self.tables[table]
         if not fields:
             fields = t.fields
-        q = t.qb.select(*fields, order_by=order_by, descending=descending)
+        q = t._qb.select(*fields, order_by=order_by, descending=descending)
 
         result_type = self.result_wrapper(fields)
         return [result_type(*i) for i in self.driver.execute(q)]
 
-    def set(self, table, *ids, **updates):
-        pass
+    def set(self, table, *key, **updates):
+        t = self.tables[table]
+        if not len(key):
+            # Such a query could be made to mean "set every row to the same
+            # value(s)".  While it may be a legitimate thing to do, we do not
+            # support it for now.
+            raise InvalidKeyError("No key given")
+        if not updates:
+            raise InvalidOperationError("You must update something")
+        if len(key) > 1 or not isinstance(key[0], dict):
+            key = dict(zip(t.key, key))
+        else:
+            key = key[0]
 
-    def delete(self, table, *ids):
+        q = t._qb.update(*updates.keys())
+        print(q.as_string(self.driver.conn))
+
+        new_fields = {"new_" + f: v for f, v in updates.items()}
+        self.driver.execute(q, {**key, **new_fields})
+
+    def delete(self, table, *key):
         pass
 
     def append(self, table, *items):
         pass
 
-    def patients_num(self):
-        return self.driver.execute(AGGREGATE)[0][0]
+    # def patients_num(self):
+    #     return self.driver.execute(AGGREGATE)[0][0]
 
-    def contracts(self):
-        return self.driver.execute(ORDER_BY)
+    # def contracts(self):
+    #     return self.driver.execute(ORDER_BY)

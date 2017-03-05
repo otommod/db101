@@ -1,3 +1,7 @@
+def valid_ident(ident):
+    return ident.isidentifier()
+
+
 def table_columns(conn, tablename):
     QUERY = ("SELECT column_name"
              " FROM information_schema.columns"
