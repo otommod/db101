@@ -2,30 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from .observable import event
-
-
-class Model:
-    def __init__(self):
-        self.money = 0
-
-    @event
-    def money_changed(new_amount):
-        pass
-
-    @property
-    def money(self):
-        return self._money
-
-    @money.setter
-    def money(self, new_amount):
-        self._money = new_amount
-        self.money_changed(new_amount)
-
-    def add_money(self, value):
-        self.money += value
-
-    def withdraw(self, value):
-        self.money -= value
+from .widgets import EditableTreeview
 
 
 class View(tk.Toplevel):
@@ -48,30 +25,19 @@ class View(tk.Toplevel):
         self.moneyCtrl.insert("end", str(money))
 
 
-class Controller:
-    def __init__(self, root):
-        self.model = Model()
-        self.model.money_changed.add_observer(self.on_money_change)
 
-        self.frame = ttk.Frame(root, padding="3 3 12 12")
-        self.frame.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
-        self.frame.columnconfigure(0, weight=1)
-        self.frame.rowconfigure(0, weight=1)
+class TableView:
+    def __init__(self, parent, table):
+        self.t = table
+        self.tree = EditableTreeview(parent, self.t.fields)
 
-        self.view = View(self.frame)
-        self.view.add_btn.config(command=self.add_money)
-        self.view.withdraw_btn.config(command=self.withdraw)
+        self.tree.add_items(self.t.get())
 
-        # for child in self.frame.winfo_children():
-        #     child.grid_configure(padx=5, pady=5)
+        self.tree.cell_edited.add_observer(self.on_changed)
 
-        self.on_money_change(self.model.money)
-
-    def add_money(self):
-        self.model.add_money(10)
-
-    def withdraw(self):
-        self.model.withdraw(10)
-
-    def on_money_change(self, new_amount):
-        self.view.set_money(new_amount)
+    def on_changed(self, row, col, old_value):
+        colname = self.tree.tree.heading(col, "text")
+        key = {k: self.tree.set(row, k) for k in self.t.key}
+        if colname in key:
+            key[colname] = old_value
+        print(key)

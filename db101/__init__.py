@@ -1,3 +1,4 @@
-from .view import Controller
+from .model import SQLModel
+from .view import TableView
 
-from .widgets.editabletreeview import EditableTreeview
+from .widgets import EditableTreeview
