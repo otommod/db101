@@ -34,7 +34,7 @@ INSERT INTO BigPharma(name, phone) VALUES
     ('Galenica',          '210-5220922');
 
 INSERT INTO Drug(bigpharma_id, name, formula) VALUES
-    (1, 'Adeprenal',  'C20-H21-F-N2O'),
+    (1, 'Adeprenal',  'C20-H21-F-N2-O'),
     (1, 'Saturnil',   'C17-H13-Cl-N4'),
     (1, 'Filicine',   'C19-H19-N7-O6'),
     (2, 'Zalasta',    'C17-H20-N4-S'),
