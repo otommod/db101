@@ -1,4 +1,9 @@
 import psycopg2
+from collections import namedtuple
+
+from .schema import SCHEMA
+from .observable import event
+from .querybuilder import QueryBuilder
 
 
 STATEMENT = """
@@ -63,23 +68,93 @@ SELECT name FROM Doctor
 """
 
 
-class Databaser:
+def valid_ident(ident):
+    return ident.isidentifier()
+
+
+def namedtuple_wrapper(fields):
+    assert all(valid_ident(f) for f in fields)
+    return namedtuple("row", fields)
+
+
+class SQLDriver:
     # TODO: The first time a command is executed, a new transaction is created.
     # These need to be commited manually.  If not, the connection will sit in
     # an "idle in transaction" state, even for simple SELECTs and that's not
-    # good.  Consider either autocommit mode or with blocks on the connection
-    # object.  These will not close the connection, rather, they will commit
-    # the transaction.
+    # good.  Consider either autocommit mode or 'with' block on the connection
+    # object.  This will not close the connection, rather, it will commit the
+    # transaction.
 
     def __init__(self, conn):
         self.conn = conn
 
-    def patients_num(self):
+    def execute(self, query):
         with self.conn.cursor() as cur:
-            cur.execute(AGGREGATE)
-            return cur.fetchone()[0]
+            cur.execute(query)
+            return cur.fetchall()
+
+
+class Table:
+    def __init__(self, db, name, key, fields):
+        self.db = db
+        self.name = name
+        self.key = key
+        self.fields = fields
+        self.qb = QueryBuilder(name, key)
+
+    @event
+    def changed():
+        pass
+
+    def get(self, *fields, order_by="", descending=False):
+        return self.db.get(self.name, *fields,
+                           order_by=order_by, descending=descending)
+
+
+class SQLModel:
+    SCHEMA = SCHEMA
+
+    def __init__(self, conn, result_wrapper=namedtuple_wrapper):
+        self.driver = SQLDriver(conn)
+        self.result_wrapper = result_wrapper
+
+        self.tables = {}
+        for name, table in self.SCHEMA.items():
+            key = table["key"]
+            if not isinstance(key, (list, tuple)):
+                key = (key,)
+            self.tables[name] = Table(self, name, key, table["fields"])
+
+        self.changed.add_observer(self._dispatch_event)
+
+    @event
+    def changed(table):
+        pass
+
+    def _dispatch_event(self, table):
+        if table in self.tables:
+            self.tables[table].changed()
+
+    def get(self, table, *fields, order_by="", descending=False):
+        t = self.tables[table]
+        if not fields:
+            fields = t.fields
+        q = t.qb.select(*fields, order_by=order_by, descending=descending)
+
+        result_type = self.result_wrapper(fields)
+        return [result_type(*i) for i in self.driver.execute(q)]
+
+    def set(self, table, *ids, **updates):
+        pass
+
+    def delete(self, table, *ids):
+        pass
+
+    def append(self, table, *items):
+        pass
+
+    def patients_num(self):
+        return self.driver.execute(AGGREGATE)[0][0]
 
     def contracts(self):
-        with self.conn.cursor() as cur:
-            cur.execute(ORDER_BY)
-            return cur.fetchall()
+        return self.driver.execute(ORDER_BY)
