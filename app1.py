@@ -1,28 +1,5 @@
 import tkinter as tk
-# from tkinter import *
 from tkinter import ttk
-
-root = tk.Tk()
-
-frm = tk.Frame(root, bd=16)
-frm.grid()
-
-var = tk.StringVar()
-
-R1 = ttk.Radiobutton(frm, text='Doctor', variable=var)
-R1.grid(row=0, column=0)
-
-R2 = ttk.Radiobutton(frm, text='Patient', variable=var)
-R2.grid(row=0, column=1)
-
-R3 = ttk.Radiobutton(frm, text='Drug', variable=var)
-R3.grid(row=0, column=2)
-
-R4 = ttk.Radiobutton(frm, text='BigPharma', variable=var)
-R4.grid(row=0, column=3)
-
-R5 = ttk.Radiobutton(frm, text='Prescription', variable=var)
-R5.grid(row=0, column=4)
 
 
 class DrugForm(ttk.Frame):
@@ -227,19 +204,51 @@ class PrescriptionForm(ttk.Frame):
         B1.grid(row=4, column=3)
 
 
-drug_form = DrugForm(root)
-drug_form.grid()
+class SearchForm(ttk.Frame):
+    def __init__(self, parent):
+        super().__init__(parent)
 
-doctor_form = DoctorForm(root)
-doctor_form.grid()
+        self.drug_form = DrugForm(self)
+        self.doctor_form = DoctorForm(self)
+        self.patient_form = PatientForm(self)
+        self.bigpharma_form = BigPharmaForm(self)
+        self.prescription_form = PrescriptionForm(self)
+        self.curform = None
 
-patient_form = PatientForm(root)
-patient_form.grid()
+        R1 = ttk.Radiobutton(self, text="Doctor",
+                             command=self._switch_to(self.doctor_form))
+        R1.grid(row=0, column=0)
 
-bigpharma_form = BigPharmaForm(root)
-bigpharma_form.grid()
+        R2 = ttk.Radiobutton(self, text="Patient",
+                             command=self._switch_to(self.patient_form))
+        R2.grid(row=0, column=1)
 
-prescription_form = PrescriptionForm(root)
-prescription_form.grid()
+        R3 = ttk.Radiobutton(self, text="Drug",
+                             command=self._switch_to(self.drug_form))
+        R3.grid(row=0, column=2)
+
+        R4 = ttk.Radiobutton(self, text="BigPharma",
+                             command=self._switch_to(self.bigpharma_form))
+        R4.grid(row=0, column=3)
+
+        R5 = ttk.Radiobutton(self, text="Prescription",
+                             command=self._switch_to(self.prescription_form))
+        R5.grid(row=0, column=4)
+
+        # R1.invoke()
+
+    def _switch_to(self, new_form):
+        def inner():
+            if self.curform:
+                self.curform.grid_forget()
+            new_form.grid(row=1, column=0)
+            self.curform = new_form
+        return inner
+
+
+root = tk.Tk()
+
+searchform = SearchForm(root)
+searchform.grid()
 
 root.mainloop()
