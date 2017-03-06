@@ -38,7 +38,7 @@ FOR EACH ROW EXECUTE PROCEDURE before_remove_contract();
 
 
 
--Ασθενης με βαση το γιατρο, το ονομα, την ηλικια, την διευθυνση και καποιο φαρμακο
+-Find Patient by Doctor, Name, Age, Address and any Drug he is taking (according to his prescriptions).
 	SELECT name, age, address, Doctor.name FROM Patient, Doctor 
 		WHERE Patient.doctor_id = Doctor.id 
 		AND Patient.id=ANY(SELECT patient_id FROM Prescription 
@@ -56,7 +56,7 @@ FOR EACH ROW EXECUTE PROCEDURE before_remove_contract();
 				
 //TO DO: Display Patient Drugs
 
--Γιατρος με βαση το Ονομα, την ειδικοτητα, την εμπειρια, τους ασθενεις και καποιο φαρμακο
+-Find Doctor by Name, Specialty, Experience, Patient and any Drug he is Prescribing.
 	SELECT name, specialty, exp FROM Doctor 
 		WHERE id=ANY(SELECT doctor_id FROM Prescription 
 			WHERE drug_id = ANY(SELECT drug_id from Sell 
@@ -67,10 +67,10 @@ FOR EACH ROW EXECUTE PROCEDURE before_remove_contract();
 		AND (CASE WHEN %(include_patient)s THEN Doctor.id = ANY(SELECT doctor_id FROM Patient 
 			WHERE name LIKE '%%%(patient)s%%') ELSE true END) 
 		AND (CASE WHEN %(include_drug)s THEN Doctor.id = ANY(SELECT doctor_id FROM Prescription
-			WHERE drug_id = ANY(SELECT Drug.id FROM Drug 
+			WHERE drug_id = ANY(SELECT id FROM Drug 
 				WHERE name LIKE '%%%(drug)s%%')) ELSE true END);
 
--Φαρμακευτικη με βαση το ονομα, το τηλεφωνο, καποιο φαρμακο και το ποτε ειχαμε συμβολαιο 
+-Find BigPharma by Name, Phone, any Drug they are making and when they had a Contract with our Pharmacy.
 	SELECT name, phone FROM BigPharma 
 		WHERE (CASE WHEN %(include_name)s THEN BigPharma.name LIKE '%%%(name)s%%' ELSE true END) 
 		AND (CASE WHEN %(include_phone)s THEN BigPharma.phone LIKE '%%%(phone)s%%' ELSE true END) 
@@ -80,20 +80,24 @@ FOR EACH ROW EXECUTE PROCEDURE before_remove_contract();
 			WHERE start_date > %(start-date)s 
 			AND end_date < %(end-date)s) ELSE true END);
 
--Φαρμακο με βαση τη φαρμακευτικη, τη φορμουλα, την τιμη και το αν το πουλαμε.
+-Find Drug by Pharma, Formula, PriceRange and whether we are selling it.
 	SELECT name, formula, bigpharma_id FROM Drug 
 		WHERE (CASE WHEN %(include_price)s THEN (SELECT price FROM Sell 
-			WHERE Sell.drug_id = Drug.id) < %(price)s ELSE true END) 
-//TO DO: Make Price Ranged
+				WHERE Sell.drug_id = Drug.id) > %(min_price)s 
+			AND    (SELECT price FROM Sell 
+				WHERE Sell.drug_id = Drug.id) < %(max_price)s ELSE true END) 
 		AND (CASE WHEN %(include_name)s THEN name LIKE '%%%(name)s%%' ELSE true END) 
 		AND (CASE WHEN %(include_formula)s THEN formula LIKE '%%%(formula)s%%' ELSE true END) 
-		AND (CASE WHEN %(include_sell)s THEN Drug.id = ANY(SELECT drug_id FROM Sell
-			WHERE pharmacy_id = ANY(SELECT Pharmacy.id FROM Pharmacy 
+		AND (CASE WHEN %(we_sell)s THEN Drug.id = ANY(SELECT drug_id FROM Sell
+			WHERE pharmacy_id = ANY(SELECT id FROM Pharmacy 
+				WHERE Pharmacy.id=%(our_pharmacy)s)) ELSE true END)
+		AND (CASE WHEN %(we_dont_sell)s THEN Drug.id <> ALL(SELECT drug_id FROM Sell
+			WHERE pharmacy_id = ANY(SELECT id FROM Pharmacy 
 				WHERE Pharmacy.id=%(our_pharmacy)s)) ELSE true END);
 				
-//TODO ID
+//Note: When nested, the expression "SELECT b FROM a" may not work. Instead, we may have to write "SELECT a.b FROM a". I have not corrected this yet. Let's try it first and see.
 
--Συνταγη με βαση το γιατρο, τον ασθενη, την ημερομηνια και το φαρμακο, με τον πιο άσχημο τρόπο που μπορείς.
+-Find Prescriptions by Doctor, Patient, Date and Drug (in the ugliest way possible).
 	SELECT Patient.name, Doctor.name, Drug.name, date, dosage FROM Patient, Doctor, Drug, (SELECT patient_id, doctor_id, drug_id, date, dosage FROM Prescription 
 			WHERE (CASE WHEN %(include_doctor)s THEN doctor_id = ANY(SELECT id FROM Doctor 
 				WHERE name LIKE '%%%(doctor)s%%') ELSE true END) 
@@ -109,44 +113,55 @@ FOR EACH ROW EXECUTE PROCEDURE before_remove_contract();
 		AND Drug.id = ANY(SELECT drug_id FROM Sell 
 			WHERE pharmacy_id = %(our_pharmacy)s);
 
--Ποια Φάρμακα Χρησιμοποιούνται κυρίως από γηραιότερους ασθενείς?
+-Find which drugs are used mostly by Old People.
 	SELECT name, formula FROM Drug
 	    WHERE (SELECT avg(age) FROM Patient
 	    	WHERE Patient.id = ANY(SELECT patient_id FROM Prescription 
 			WHERE Prescription.drug_id = ANY(SELECT id FROM Drug))) > 50;
 
--Ποια και ποσα Φάρμακα Πουλάει το Φαρμακείο μας?
+-Find which and how many Drugs we sell.
 	SELECT name, formula, bigpharma_id FROM Drug 
 		WHERE id = ANY(SELECT drug_id FROM Sell
 			WHERE pharmacy_id = ANY(SELECT id FROM Pharmacy
 				WHERE id = %(our_pharmacy)s)); 
-	SELECT COUNT(id) FROM (SELECT name FROM Drug 
+	SELECT count(SELECT * FROM Drug 
 		WHERE Drug.id = ANY(SELECT drug_id FROM Sell 
 			WHERE Sell.pharmacy_id = (SELECT id FROM Pharmacy
 				WHERE id = %(our_pharmacy)s)));
-				
-//TO DO: GROUP BY?
 
--Ποιος με πηρε τηλεφωνο?
-	SELECT phone, name FROM BigPharma, Pharmacy WHERE BigPharma.phone LIKE '%%%s%%';
+-Who Called Me?
+	(CASE %s WHEN ANY(SELECT BigPharma.phone FROM BigPharma)
+			THEN SELECT name, phone FROM BigPharma WHERE phone = %s
+	         WHEN ANY(SELECT Pharmacy.phone FROM Pharmacy) 
+		 	THEN SELECT name, phone FROM Pharmacy WHERE phone = %s
+	         ELSE 'https://www.xo.gr/' END) 
 	
-//fix me
+//Does it work?
+
+-Who Called Me Swag 2.0
+	SELECT name, phone FROM
+	(CASE %s WHEN ANY(SELECT BigPharma.phone FROM BigPharma)
+			THEN BigPharma
+	         WHEN ANY(SELECT Pharmacy.phone FROM Pharmacy) 
+		 	THEN Pharmacy END) WHERE phone = %s
+			
+//Does it work?
 	
--Με ποιες εταιρίες συνεργάζεται το φαρμακείο?
+-Find the BigPharmas that we work with.
 	SELECT name, phone FROM BigPharma 
 		WHERE BigPharma.id = ANY(SELECT bigpharma_id FROM Contract 
 			WHERE start_date<CURRENT_DATE 
 			AND end_date>CURRENT_DATE 
 			AND Contract.pharmacy_id = %(our_pharmacy)s);
 
--Με ποιες εταιρίες δε συνεργάζεται το Φαρμακείο?
+-Find the BigPharmas we DONT work with.
 	SELECT name, phone FROM BigPharma 
 		WHERE BigPharma.id <> ALL(SELECT bigpharma_id FROM Contract 
 			WHERE start_date<CURRENT_DATE 
 			AND end_date>CURRENT_DATE
 			AND Contract.pharmacy_id = %(our_pharmacy)s);
 
--Ποια Φάρμακα δεν πουλάει το Φαρμακείο μας από τις εταιρίες που συνεργαζόμαστε?
+-Find the Drugs we DONT sell, made by Pharmas currently under Contract with us.
 	SELECT name FROM Drug 
 		WHERE id <> ALL(SELECT drug_id FROM Sell 
 			WHERE pharmacy_id=%(our_pharmacy)s) 
@@ -155,7 +170,7 @@ FOR EACH ROW EXECUTE PROCEDURE before_remove_contract();
 				WHERE start_date<CURRENT_DATE 
 				AND end_date>CURRENT_DATE));
 
--Ποια φάρμακα πουλάνε οι εταιρίες που δε συνεργάζονται με το φαρμακείο?
+-List all drugs made by Pharmas that are NOT currently under contract with us.
 	SELECT name FROM Drug 
 		WHERE bigpharma_id <> ALL(SELECT id FROM BigPharma 
 			WHERE id = ANY(SELECT bigpharma_id FROM Contract
@@ -163,7 +178,7 @@ FOR EACH ROW EXECUTE PROCEDURE before_remove_contract();
 				AND end_date>CURRENT_DATE 
 				AND pharmacy_id=%(our_pharmacy)s));
 
--Ολα τα φαρμακα που χρειαζεται ενας συγκεκριμενος ασθενης. 
+-List all the drugs a Patient needs. 
 	SELECT drug_id, date, dosage FROM Prescription 
 		WHERE patient_id = (SELECT id FROM Patient 
 			WHERE name = %s);
