@@ -41,11 +41,10 @@ FOR EACH ROW EXECUTE PROCEDURE before_remove_contract();
 -Ασθενης με βαση το γιατρο, το ονομα, την ηλικια, την διευθυνση και καποιο φαρμακο
 	SELECT name, age, address, Doctor.name FROM Patient, Doctor 
 		WHERE Patient.doctor_id = Doctor.id 
-		AND id=ANY(SELECT patient_id FROM Prescription 
+		AND Patient.id=ANY(SELECT patient_id FROM Prescription 
 			WHERE drug_id = ANY(SELECT drug_id from Sell 
 				WHERE pharmacy_id=%(our_pharmacy)s)) 
-		AND (CASE WHEN %(include_name)s THEN name LIKE '%%%(name)s%%' ELSE true END) 
-		AND (CASE WHEN %(include_exp)s THEN exp = %(exp)s ELSE true END) 
+		AND (CASE WHEN %(include_name)s THEN Patient.name LIKE '%%%(name)s%%' ELSE true END) 
 		AND (CASE WHEN %(include_maxage)s THEN age < %(maxage)s ELSE true END) 
 		AND (CASE WHEN %(include_minage)s THEN age > %(minage)s ELSE true END) 
 		AND (CASE WHEN %(include_doctor)s THEN doctor_id = ANY(SELECT id FROM Doctor 
@@ -54,28 +53,30 @@ FOR EACH ROW EXECUTE PROCEDURE before_remove_contract();
 		AND (CASE WHEN %(include_drug)s THEN id = ANY(SELECT patient_id FROM Prescription 
 			WHERE drug_id = ANY(SELECT id FROM Drug 
 				WHERE name LIKE '%%%(drug)s%%')) ELSE true END);
+				
+//TO DO: Display Patient Drugs
 
 -Γιατρος με βαση το Ονομα, την ειδικοτητα, την εμπειρια, τους ασθενεις και καποιο φαρμακο
 	SELECT name, specialty, exp FROM Doctor 
 		WHERE id=ANY(SELECT doctor_id FROM Prescription 
 			WHERE drug_id = ANY(SELECT drug_id from Sell 
 				WHERE pharmacy_id=%(our_pharmacy)s)) 
-		AND (CASE WHEN %(include_name)s THEN name LIKE '%%%(name)s%%' ELSE true END) 
+		AND (CASE WHEN %(include_name)s THEN Doctor.name LIKE '%%%(name)s%%' ELSE true END) 
 		AND (CASE WHEN %(include_specialty)s THEN specialty LIKE '%%%(specialty)s%%' ELSE true END) 
 		AND (CASE WHEN %(include_exp)s THEN exp = %(exp)s ELSE true END) 
-		AND (CASE WHEN %(include_patient)s THEN id = ANY(SELECT doctor_id FROM Patient 
+		AND (CASE WHEN %(include_patient)s THEN Doctor.id = ANY(SELECT doctor_id FROM Patient 
 			WHERE name LIKE '%%%(patient)s%%') ELSE true END) 
-		AND (CASE WHEN %(include_drug)s THEN id = ANY(SELECT doctor_id FROM Prescription
-			WHERE drug_id = ANY(SELECT id FROM Drug 
+		AND (CASE WHEN %(include_drug)s THEN Doctor.id = ANY(SELECT doctor_id FROM Prescription
+			WHERE drug_id = ANY(SELECT Drug.id FROM Drug 
 				WHERE name LIKE '%%%(drug)s%%')) ELSE true END);
 
 -Φαρμακευτικη με βαση το ονομα, το τηλεφωνο, καποιο φαρμακο και το ποτε ειχαμε συμβολαιο 
 	SELECT name, phone FROM BigPharma 
-		WHERE (CASE WHEN %(include_name)s THEN name LIKE '%%%(name)s%%' ELSE true END) 
-		AND (CASE WHEN %(include_phone)s THEN phone LIKE '%%%(phone)s%%' ELSE true END) 
-		AND (CASE WHEN %(include_drug)s THEN id = ANY(SELECT bigpharma_id FROM Drug 
+		WHERE (CASE WHEN %(include_name)s THEN BigPharma.name LIKE '%%%(name)s%%' ELSE true END) 
+		AND (CASE WHEN %(include_phone)s THEN BigPharma.phone LIKE '%%%(phone)s%%' ELSE true END) 
+		AND (CASE WHEN %(include_drug)s THEN BigPharma.id = ANY(SELECT bigpharma_id FROM Drug 
 			WHERE name LIKE '%%%(drug)s%%') ELSE true END) 
-		AND (CASE WHEN %(include_contract)s THEN id = ANY(SELECT bigpharma_id FROM Contract 
+		AND (CASE WHEN %(include_contract)s THEN BigPharma.id = ANY(SELECT bigpharma_id FROM Contract 
 			WHERE start_date > %(start-date)s 
 			AND end_date < %(end-date)s) ELSE true END);
 
@@ -83,11 +84,14 @@ FOR EACH ROW EXECUTE PROCEDURE before_remove_contract();
 	SELECT name, formula, bigpharma_id FROM Drug 
 		WHERE (CASE WHEN %(include_price)s THEN (SELECT price FROM Sell 
 			WHERE Sell.drug_id = Drug.id) < %(price)s ELSE true END) 
+//TO DO: Make Price Ranged
 		AND (CASE WHEN %(include_name)s THEN name LIKE '%%%(name)s%%' ELSE true END) 
 		AND (CASE WHEN %(include_formula)s THEN formula LIKE '%%%(formula)s%%' ELSE true END) 
-		AND (CASE WHEN %(include_sell)s THEN id = ANY(SELECT drug_id FROM Sell
-			WHERE pharmacy_id = ANY(SELECT id FROM Pharmacy 
-				WHERE id=%(our_pharmacy)s)) ELSE true END);
+		AND (CASE WHEN %(include_sell)s THEN Drug.id = ANY(SELECT drug_id FROM Sell
+			WHERE pharmacy_id = ANY(SELECT Pharmacy.id FROM Pharmacy 
+				WHERE Pharmacy.id=%(our_pharmacy)s)) ELSE true END);
+				
+//TODO ID
 
 -Συνταγη με βαση το γιατρο, τον ασθενη, την ημερομηνια και το φαρμακο, με τον πιο άσχημο τρόπο που μπορείς.
 	SELECT Patient.name, Doctor.name, Drug.name, date, dosage FROM Patient, Doctor, Drug, (SELECT patient_id, doctor_id, drug_id, date, dosage FROM Prescription 
@@ -115,14 +119,18 @@ FOR EACH ROW EXECUTE PROCEDURE before_remove_contract();
 	SELECT name, formula, bigpharma_id FROM Drug 
 		WHERE id = ANY(SELECT drug_id FROM Sell
 			WHERE pharmacy_id = ANY(SELECT id FROM Pharmacy
-				WHERE id = %(our_pharmacy)s)) 
+				WHERE id = %(our_pharmacy)s)); 
 	SELECT COUNT(id) FROM (SELECT name FROM Drug 
 		WHERE Drug.id = ANY(SELECT drug_id FROM Sell 
 			WHERE Sell.pharmacy_id = (SELECT id FROM Pharmacy
 				WHERE id = %(our_pharmacy)s)));
+				
+//TO DO: GROUP BY?
 
 -Ποιος με πηρε τηλεφωνο?
-	SELECT phone FROM BigPharma, Pharmacy WHERE phone LIKE '%%%s%%';
+	SELECT phone, name FROM BigPharma, Pharmacy WHERE BigPharma.phone LIKE '%%%s%%';
+	
+//fix me
 	
 -Με ποιες εταιρίες συνεργάζεται το φαρμακείο?
 	SELECT name, phone FROM BigPharma 
