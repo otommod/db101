@@ -1,4 +1,4 @@
-from .model import SQLModel
+from .model import Model
 from .mapper import SQLMapperFactory
 from .view import TableView
 

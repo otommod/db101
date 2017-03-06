@@ -7,7 +7,7 @@ import db101
 
 conn = psycopg2.connect(dbname="db101")
 mapfactory = db101.SQLMapperFactory(conn)
-model = db101.SQLModel(mapfactory)
+model = db101.Model(mapfactory)
 
 root = tk.Tk()
 root.title("Databaser 3000")

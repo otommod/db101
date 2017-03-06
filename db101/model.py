@@ -1,7 +1,7 @@
 from collections import namedtuple
-from functools import partialmethod, partial
+from functools import partial
 
-from .observable import event
+from .observable import eventsource
 from .schema import SCHEMA
 
 
@@ -18,7 +18,7 @@ class Table(namedtuple("Table", "name key fields db")):
         key = key if isinstance(key, (list, tuple)) else (key,)
         return super().__new__(cls, name, key, fields, db)
 
-    @event
+    @eventsource
     def changed():
         pass
 
@@ -28,7 +28,7 @@ class Table(namedtuple("Table", "name key fields db")):
         raise AttributeError(attr)
 
 
-class SQLModel:
+class Model:
     SCHEMA = SCHEMA
 
     def __init__(self, mapper_factory):
@@ -42,7 +42,7 @@ class SQLModel:
             setattr(self, name.title(), table)
         self.changed.add_observer(self._dispatch_to_table)
 
-    @event
+    @eventsource
     def changed(table):
         pass
 
@@ -75,8 +75,18 @@ class SQLModel:
 
         self._mapper_for(table).set(key, updates)
 
-    def delete(self, table, *key):
-        pass
+    def append(self, table, item):
+        t = self._tables[table]
+        if isinstance(item, (list, tuple)):
+            item = dict(zip(t.fields, item))
 
-    def append(self, table, *items):
-        pass
+        self._mapper_for(table).append(item)
+
+    def delete(self, table, *key):
+        t = self._tables[table]
+        if len(key) == 1 and isinstance(key[0], dict):
+            key = key[0]
+        else:
+            key = dict(zip(t.key, key))
+
+        self._mapper_for(table).delete(key)

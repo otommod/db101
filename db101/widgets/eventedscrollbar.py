@@ -1,12 +1,12 @@
 from tkinter import ttk
 
-from ..observable import event
+from ..observable import eventsource
 
 
 class EventedScrollbar(ttk.Scrollbar):
     """A ttk.Scrollbar that emits an event when it is scrolled."""
 
-    @event
+    @eventsource
     def scrolled(from_, to):
         pass
 

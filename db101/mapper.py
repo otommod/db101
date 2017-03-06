@@ -42,15 +42,15 @@ class QueryBuilder:
             return SQL("SELECT {0} FROM {1} ORDER BY {2} DESC;").format(
                 selection, self.table, ordering)
 
-    def insert(self, *fields):
-        return SQL("INSERT INTO {0} ({1}) VALUES %s;").format(
-            self.table, self._idlist(fields, join=", "))
-
     def update(self, *fields):
         return SQL("UPDATE {0} SET {1} WHERE {2};").format(
             self.table,
             self._eqlist(fields, prefix="new_", join=", "),
             self.key_selection)
+
+    def insert(self, *fields):
+        return SQL("INSERT INTO {0} ({1}) VALUES %s;").format(
+            self.table, self._idlist(fields, join=", "))
 
     def delete(self):
         return SQL("DELETE FROM {0} WHERE {1};").format(
@@ -89,6 +89,10 @@ class SQLMapperFactory:
 
 
 class SQLMapper:
+    @classmethod
+    def _prefix_dict(cls, dictionary, prefix):
+        return {prefix + f: v for f, v in dictionary.items()}
+
     def __init__(self, factory, tabledef):
         self.factory = factory
         self.tabledef = tabledef
@@ -102,8 +106,13 @@ class SQLMapper:
         q = self.builder.update(*updates.keys())
         print(q.as_string(self.factory.conn))
 
-        params = {
-            **{"key_" + f: v for f, v in key.items()},
-            **{"new_" + f: v for f, v in updates.items()}
-        }
-        self.factory.driver.execute(q, params)
+        self.factory.driver.execute(q, {**self._prefix_dict(key, "key_"),
+                                        **self._prefix_dict(updates, "new_")})
+
+    def append(self, values):
+        q = self.builder.insert(*values.keys())
+        self.factory.driver.execute(q, [tuple(values.values())])
+
+    def delete(self, key):
+        q = self.builder.delete()
+        self.factory.driver.execute(q, self._prefix_dict(key, "key_"))

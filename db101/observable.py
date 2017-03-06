@@ -1,7 +1,8 @@
 # https://stackoverflow.com/a/1926336
 # http://simeonfranklin.com/talk/descriptors.html
 
-class boundevent(object):
+
+class boundeventsource(object):
     def __init__(self):
         self._observers = []
 
@@ -13,16 +14,16 @@ class boundevent(object):
             f(*args, **kwargs)
 
 
-class event(object):
+class eventsource(object):
     def __init__(self, method):
         self.__doc__ = method.__doc__
         self.__name__ = method.__name__
 
     def __get__(self, obj, objtype):
-        print("event.__get__(%s, %s)" % (obj, objtype))
+        print("eventsource.__get__(%s, %s)" % (obj, objtype))
 
         if obj is None:
             return self
         if self.__name__ not in obj.__dict__:
-            obj.__dict__[self.__name__] = boundevent()
+            obj.__dict__[self.__name__] = boundeventsource()
         return obj.__dict__[self.__name__]

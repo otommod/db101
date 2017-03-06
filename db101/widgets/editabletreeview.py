@@ -1,6 +1,7 @@
+import tkinter as tk
 from tkinter import font, ttk
 
-from ..observable import event
+from ..observable import eventsource
 # from .singleentry import SingleEntry
 from .eventedscrollbar import EventedScrollbar
 
@@ -40,12 +41,13 @@ class EditableTreeview(ttk.Frame):
         self.cell_entry = None
         self.tree.bind("<1>", lambda *ignore: self.cancel_edit())
         self.tree.bind("<Double-1>", self.on_double_click)
+        self.tree.bind("<3>", self.on_right_click)
 
-    @event
+    @eventsource
     def view_changed():
         pass
 
-    @event
+    @eventsource
     def cell_edited(row, col, old_value):
         pass
 
@@ -130,3 +132,10 @@ class EditableTreeview(ttk.Frame):
     def on_double_click(self, event):
         self.edit_cell(self.tree.identify_row(event.y),
                        self.tree.identify_column(event.x))
+
+    def on_right_click(self, event):
+        selection = self.tree.selection()
+        clicked_on = self.tree.identify_row(event.y)
+        print(selection)
+        if clicked_on not in selection:
+            self.tree.selection_set(clicked_on)
