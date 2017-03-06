@@ -214,25 +214,26 @@ class SearchForm(ttk.Frame):
         self.bigpharma_form = BigPharmaForm(self)
         self.prescription_form = PrescriptionForm(self)
         self.curform = None
+    
 
         R1 = ttk.Radiobutton(self, text="Doctor",
-                             command=self._switch_to(self.doctor_form))
+                             command=self._switch_to(self.doctor_form),value = '1')
         R1.grid(row=0, column=0)
 
         R2 = ttk.Radiobutton(self, text="Patient",
-                             command=self._switch_to(self.patient_form))
+                             command=self._switch_to(self.patient_form),value = '2')
         R2.grid(row=0, column=1)
 
         R3 = ttk.Radiobutton(self, text="Drug",
-                             command=self._switch_to(self.drug_form))
+                             command=self._switch_to(self.drug_form),value = '3')
         R3.grid(row=0, column=2)
 
         R4 = ttk.Radiobutton(self, text="BigPharma",
-                             command=self._switch_to(self.bigpharma_form))
+                             command=self._switch_to(self.bigpharma_form),value = '4')
         R4.grid(row=0, column=3)
 
         R5 = ttk.Radiobutton(self, text="Prescription",
-                             command=self._switch_to(self.prescription_form))
+                             command=self._switch_to(self.prescription_form),value = '5')
         R5.grid(row=0, column=4)
 
         # R1.invoke()
@@ -241,7 +242,7 @@ class SearchForm(ttk.Frame):
         def inner():
             if self.curform:
                 self.curform.grid_forget()
-            new_form.grid(row=1, column=0)
+            new_form.grid(row=1, column=0,columnspan=5)
             self.curform = new_form
         return inner
 
