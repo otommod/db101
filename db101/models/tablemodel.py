@@ -1,16 +1,9 @@
 from collections import namedtuple
 from functools import partial
 
-from .observable import eventsource
-from .schema import SCHEMA
-
-
-class InvalidKeyError(Exception):
-    pass
-
-
-class InvalidOperationError(Exception):
-    pass
+from ..observable import eventsource
+from ..schema import SCHEMA
+from .exceptions import InvalidKeyError, InvalidOperationError
 
 
 class Table(namedtuple("Table", "name key fields db")):
@@ -28,7 +21,7 @@ class Table(namedtuple("Table", "name key fields db")):
         raise AttributeError(attr)
 
 
-class Model:
+class TableModel:
     SCHEMA = SCHEMA
 
     def __init__(self, mapper_factory):
@@ -57,8 +50,12 @@ class Model:
         t = self._tables[table]
         if not fields:
             fields = t.fields
-        return self._mapper_for(table).get(
-            fields, order_by=order_by, descending=descending)
+        ok, result = self._mapper_for(table).get(fields,
+                                                 order_by=order_by,
+                                                 descending=descending)
+        if not ok:
+            raise InvalidOperationError(result)
+        return result
 
     def set(self, table, *key, **updates):
         t = self._tables[table]
@@ -73,14 +70,20 @@ class Model:
         else:
             key = dict(zip(t.key, key))
 
-        self._mapper_for(table).set(key, updates)
+        ok, changes = self._mapper_for(table).set(key, updates)
+        if not ok:
+            raise InvalidOperationError(changes)
+        self.changed(table)
 
     def append(self, table, item):
         t = self._tables[table]
         if isinstance(item, (list, tuple)):
             item = dict(zip(t.fields, item))
 
-        self._mapper_for(table).append(item)
+        ok, changes = self._mapper_for(table).append(item)
+        if not ok:
+            raise InvalidOperationError(changes)
+        self.changed(table)
 
     def delete(self, table, *key):
         t = self._tables[table]
@@ -89,4 +92,7 @@ class Model:
         else:
             key = dict(zip(t.key, key))
 
-        self._mapper_for(table).delete(key)
+        ok, changes = self._mapper_for(table).delete(key)
+        if not ok:
+            raise InvalidOperationError(changes)
+        self.changed(table)

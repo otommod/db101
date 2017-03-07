@@ -9,6 +9,11 @@ class boundeventsource(object):
     def add_observer(self, obs):
         self._observers.append(obs)
 
+    def remove_observer(self, obs):
+        idx = self._observers.index(obs)
+        if idx >= 0:
+            del self._observers[idx]
+
     def __call__(self, *args, **kwargs):
         for f in self._observers:
             f(*args, **kwargs)

@@ -1,12 +1,6 @@
-from collections import namedtuple
-
-import psycopg2
 from psycopg2.sql import SQL, Identifier
 
-
-def namedtuple_wrapper(fields):
-    assert all(f.isidentifier() for f in fields)
-    return namedtuple("row", fields)
+from .helpers import MapperFactory
 
 
 class QueryBuilder:
@@ -57,38 +51,7 @@ class QueryBuilder:
             self.table, self.key_selection)
 
 
-class SQLDriver:
-    # TODO: The first time a command is executed, a new transaction is created.
-    # These need to be commited manually.  If not, the connection will sit in
-    # an "idle in transaction" state, even for simple SELECTs and that's not
-    # good.  Consider either autocommit mode or 'with' block on the connection
-    # object.  This will not close the connection, rather, it will commit the
-    # transaction.
-
-    def __init__(self, conn):
-        self.conn = conn
-        self.conn.autocommit = True
-
-    def execute(self, query, *args, **kwargs):
-        with self.conn.cursor() as cur:
-            cur.execute(query, *args, **kwargs)
-            try:
-                return cur.fetchall()
-            except psycopg2.ProgrammingError:
-                pass
-
-
-class SQLMapperFactory:
-    def __init__(self, conn, result_wrapper=namedtuple_wrapper):
-        self.conn = conn
-        self.driver = SQLDriver(conn)
-        self.result_wrapper = result_wrapper
-
-    def __call__(self, table):
-        return SQLMapper(self, table)
-
-
-class SQLMapper:
+class TableMapper:
     @classmethod
     def _prefix_dict(cls, dictionary, prefix):
         return {prefix + f: v for f, v in dictionary.items()}
@@ -99,20 +62,31 @@ class SQLMapper:
         self.builder = QueryBuilder(tabledef.name, tabledef.key)
 
     def get(self, fields, order_by="", descending=False):
-        q = self.builder.select(*fields, order_by=order_by, descending=descending)
-        return self.factory.driver.execute(q)
+        q = self.builder.select(*fields,
+                                order_by=order_by,
+                                descending=descending)
+        ok, result = self.factory.execute(q)
+        if not ok:
+            return ok, result
+        result_type = self.factory.result_wrapper(fields)
+        return [result_type(*i) for i in result]
 
     def set(self, key, updates):
         q = self.builder.update(*updates.keys())
-        print(q.as_string(self.factory.conn))
-
-        self.factory.driver.execute(q, {**self._prefix_dict(key, "key_"),
-                                        **self._prefix_dict(updates, "new_")})
+        return self.factory.execute(q, {
+            **self._prefix_dict(key, "key_"),
+            **self._prefix_dict(updates, "new_")
+        })
 
     def append(self, values):
         q = self.builder.insert(*values.keys())
-        self.factory.driver.execute(q, [tuple(values.values())])
+        return self.factory.execute(q, [tuple(values.values())])
 
     def delete(self, key):
         q = self.builder.delete()
-        self.factory.driver.execute(q, self._prefix_dict(key, "key_"))
+        return self.factory.execute(q, self._prefix_dict(key, "key_"))
+
+
+class TableMapperFactory(MapperFactory):
+    def __call__(self, table):
+        return TableMapper(self, table)
