@@ -9,12 +9,12 @@ WHERE id = ANY(SELECT doctor_id
                                    WHERE pharmacy_id = %(our_pharmacy)s))
   AND CASE
     WHEN %(include_name)s
-    THEN Doctor.name LIKE '%'||%(name)s||'%' ESCAPE '='
+    THEN Doctor.name LIKE '%%'||%(name)s||'%%' ESCAPE '='
     ELSE true
   END
   AND CASE
     WHEN %(include_specialty)s
-    THEN specialty LIKE '%'||%(specialty)s||'%' ESCAPE '='
+    THEN specialty LIKE '%%'||%(specialty)s||'%%' ESCAPE '='
     ELSE true
   END
   AND CASE
@@ -26,7 +26,7 @@ WHERE id = ANY(SELECT doctor_id
     WHEN %(include_patient)s
     THEN Doctor.id = ANY(SELECT doctor_id
                          FROM Patient
-                         WHERE name LIKE '%'||%(patient)s||'%' ESCAPE '=')
+                         WHERE name LIKE '%%'||%(patient)s||'%%' ESCAPE '=')
     ELSE true
   END
   AND CASE
@@ -35,7 +35,7 @@ WHERE id = ANY(SELECT doctor_id
                          FROM Prescription
                          WHERE drug_id = ANY(SELECT id
                                              FROM Drug
-                                             WHERE name LIKE '%'||%(drug)s||'%' ESCAPE '='))
+                                             WHERE name LIKE '%%'||%(drug)s||'%%' ESCAPE '='))
     ELSE true
   END
 ;
