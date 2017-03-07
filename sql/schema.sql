@@ -55,7 +55,7 @@ CREATE TABLE Prescription (
 CREATE TABLE Contract (
   pharmacy_id INTEGER REFERENCES Pharmacy(id),
   bigpharma_id INTEGER REFERENCES BigPharma(id),
-  supervisor_id INTEGER,
+  supervisor ΤΕΧΤ,
   start_date DATE,
   end_date DATE,
   content TEXT,
