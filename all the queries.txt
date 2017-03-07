@@ -44,15 +44,15 @@ FOR EACH ROW EXECUTE PROCEDURE before_remove_contract();
 		AND Patient.id=ANY(SELECT patient_id FROM Prescription 
 			WHERE drug_id = ANY(SELECT drug_id from Sell 
 				WHERE pharmacy_id=%(our_pharmacy)s)) 
-		AND (CASE WHEN %(include_name)s THEN Patient.name LIKE '%%%(name)s%%' ELSE true END) 
+		AND (CASE WHEN %(include_name)s THEN Patient.name LIKE '%%'||%(name)s||'%%' ESCAPE '=' ELSE true END) 
 		AND (CASE WHEN %(include_maxage)s THEN age < %(maxage)s ELSE true END) 
 		AND (CASE WHEN %(include_minage)s THEN age > %(minage)s ELSE true END) 
 		AND (CASE WHEN %(include_doctor)s THEN doctor_id = ANY(SELECT id FROM Doctor 
-			WHERE name LIKE '%%%(doctor)s%%') ELSE true END) 
-		AND (CASE WHEN %(include_address)s THEN address LIKE '%%%(address)s%%' ELSE true END) 
+			WHERE name LIKE '%%'||%(doctor)s||'%%' ESCAPE '=') ELSE true END) 
+		AND (CASE WHEN %(include_address)s THEN address LIKE '%%'||%(address)s||'%%' ESCAPE '=' ELSE true END) 
 		AND (CASE WHEN %(include_drug)s THEN id = ANY(SELECT patient_id FROM Prescription 
 			WHERE drug_id = ANY(SELECT id FROM Drug 
-				WHERE name LIKE '%%%(drug)s%%')) ELSE true END);
+				WHERE name LIKE '%%'||%(drug)s||'%%' ESCAPE '=')) ELSE true END);
 				
 //TO DO: Display Patient Drugs
 
@@ -61,21 +61,21 @@ FOR EACH ROW EXECUTE PROCEDURE before_remove_contract();
 		WHERE id=ANY(SELECT doctor_id FROM Prescription 
 			WHERE drug_id = ANY(SELECT drug_id from Sell 
 				WHERE pharmacy_id=%(our_pharmacy)s)) 
-		AND (CASE WHEN %(include_name)s THEN Doctor.name LIKE '%%%(name)s%%' ELSE true END) 
-		AND (CASE WHEN %(include_specialty)s THEN specialty LIKE '%%%(specialty)s%%' ELSE true END) 
+		AND (CASE WHEN %(include_name)s THEN Doctor.name LIKE '%%'||%(name)s||'%%' ESCAPE '=' ELSE true END) 
+		AND (CASE WHEN %(include_specialty)s THEN specialty LIKE '%%'||%(specialty)s||'%%' ESCAPE '=' ELSE true END) 
 		AND (CASE WHEN %(include_exp)s THEN exp = %(exp)s ELSE true END) 
 		AND (CASE WHEN %(include_patient)s THEN Doctor.id = ANY(SELECT doctor_id FROM Patient 
-			WHERE name LIKE '%%%(patient)s%%') ELSE true END) 
+			WHERE name LIKE '%%'||%(patient)s||'%%' ESCAPE '=') ELSE true END) 
 		AND (CASE WHEN %(include_drug)s THEN Doctor.id = ANY(SELECT doctor_id FROM Prescription
 			WHERE drug_id = ANY(SELECT id FROM Drug 
-				WHERE name LIKE '%%%(drug)s%%')) ELSE true END);
+				WHERE name LIKE '%%'||%(drug)s||'%%' ESCAPE '=')) ELSE true END);
 
 -Find BigPharma by Name, Phone, any Drug they are making and when they had a Contract with our Pharmacy.
 	SELECT name, phone FROM BigPharma 
-		WHERE (CASE WHEN %(include_name)s THEN BigPharma.name LIKE '%%%(name)s%%' ELSE true END) 
-		AND (CASE WHEN %(include_phone)s THEN BigPharma.phone LIKE '%%%(phone)s%%' ELSE true END) 
+		WHERE (CASE WHEN %(include_name)s THEN BigPharma.name LIKE '%%'||%(name)s||'%%' ESCAPE '=' ELSE true END) 
+		AND (CASE WHEN %(include_phone)s THEN BigPharma.phone LIKE '%%'||%(phone)s||'%%' ESCAPE '=' ELSE true END) 
 		AND (CASE WHEN %(include_drug)s THEN BigPharma.id = ANY(SELECT bigpharma_id FROM Drug 
-			WHERE name LIKE '%%%(drug)s%%') ELSE true END) 
+			WHERE name LIKE '%%'||%(drug)s||'%%' ESCAPE '=') ELSE true END) 
 		AND (CASE WHEN %(include_contract)s THEN BigPharma.id = ANY(SELECT bigpharma_id FROM Contract 
 			WHERE start_date > %(start-date)s 
 			AND end_date < %(end-date)s) ELSE true END);
@@ -86,8 +86,8 @@ FOR EACH ROW EXECUTE PROCEDURE before_remove_contract();
 				WHERE Sell.drug_id = Drug.id) > %(min_price)s 
 			AND    (SELECT price FROM Sell 
 				WHERE Sell.drug_id = Drug.id) < %(max_price)s ELSE true END) 
-		AND (CASE WHEN %(include_name)s THEN name LIKE '%%%(name)s%%' ELSE true END) 
-		AND (CASE WHEN %(include_formula)s THEN formula LIKE '%%%(formula)s%%' ELSE true END) 
+		AND (CASE WHEN %(include_name)s THEN name LIKE '%%'||%(name)s||'%%' ESCAPE '=' ELSE true END) 
+		AND (CASE WHEN %(include_formula)s THEN formula LIKE '%%'||%(formula)s||'%%' ESCAPE '=' ELSE true END) 
 		AND (CASE WHEN %(we_sell)s THEN Drug.id = ANY(SELECT drug_id FROM Sell
 			WHERE pharmacy_id = ANY(SELECT id FROM Pharmacy 
 				WHERE Pharmacy.id=%(our_pharmacy)s)) ELSE true END)
@@ -100,12 +100,12 @@ FOR EACH ROW EXECUTE PROCEDURE before_remove_contract();
 -Find Prescriptions by Doctor, Patient, Date and Drug (in the ugliest way possible).
 	SELECT Patient.name, Doctor.name, Drug.name, date, dosage FROM Patient, Doctor, Drug, (SELECT patient_id, doctor_id, drug_id, date, dosage FROM Prescription 
 			WHERE (CASE WHEN %(include_doctor)s THEN doctor_id = ANY(SELECT id FROM Doctor 
-				WHERE name LIKE '%%%(doctor)s%%') ELSE true END) 
+				WHERE name LIKE '%%'||%(doctor)s||'%%' ESCAPE '=') ELSE true END) 
 			AND (CASE WHEN %(include_patient)s THEN patient_id = ANY(SELECT id FROM Patient 
-				WHERE name LIKE '%%%(patient)s%%') ELSE true END) 
+				WHERE name LIKE '%%'||%(patient)s||'%%' ESCAPE '=') ELSE true END) 
 			AND (CASE WHEN %(include_date)s THEN date = %(date)s ELSE true END) 
 			AND (CASE WHEN %(include_drug)s THEN drug_id = ANY(SELECT id FROM Drug 
-				WHERE name LIKE '%%%(drug)s%%') ELSE true END)
+				WHERE name LIKE '%%'||%(drug)s||'%%' ESCAPE '=') ELSE true END)
 	) AS prescription_shit 
 		WHERE prescription_shit.patient_id = Patient.id 
 		AND prescription_shit.doctor_id = Doctor.id
