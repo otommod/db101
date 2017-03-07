@@ -15,7 +15,7 @@ HAVING end_date < %s;
 CREATE VIEW PatientsWithYoungDoctors AS
 SELECT name FROM Patient
     WHERE age > (SELECT exp FROM Doctor WHERE Doctor.id=Patient.doctor_id);
-   
+
 CREATE VIEW DoctorsWithOldPatients AS
 SELECT name FROM Doctor
     WHERE (SELECT avg(age) FROM Patient WHERE Patient.doctor_id = Doctor.id) > 50;
@@ -32,153 +32,153 @@ CREATE TRIGGER before_remove_contract
     BEFORE DELETE ON Contract
 FOR EACH ROW EXECUTE PROCEDURE before_remove_contract();
 
-						
+
 
 --NEW--
 
 
 
 -Find Patient by Doctor, Name, Age, Address and any Drug he is taking (according to his prescriptions).
-	SELECT name, age, address, Doctor.name FROM Patient, Doctor 
-		WHERE Patient.doctor_id = Doctor.id 
-		AND Patient.id=ANY(SELECT patient_id FROM Prescription 
-			WHERE drug_id = ANY(SELECT drug_id from Sell 
-				WHERE pharmacy_id=%(our_pharmacy)s)) 
-		AND (CASE WHEN %(include_name)s THEN Patient.name LIKE '%%'||%(name)s||'%%' ESCAPE '=' ELSE true END) 
-		AND (CASE WHEN %(include_maxage)s THEN age < %(maxage)s ELSE true END) 
-		AND (CASE WHEN %(include_minage)s THEN age > %(minage)s ELSE true END) 
-		AND (CASE WHEN %(include_doctor)s THEN doctor_id = ANY(SELECT id FROM Doctor 
-			WHERE name LIKE '%%'||%(doctor)s||'%%' ESCAPE '=') ELSE true END) 
-		AND (CASE WHEN %(include_address)s THEN address LIKE '%%'||%(address)s||'%%' ESCAPE '=' ELSE true END) 
-		AND (CASE WHEN %(include_drug)s THEN id = ANY(SELECT patient_id FROM Prescription 
-			WHERE drug_id = ANY(SELECT id FROM Drug 
+	SELECT name, age, address, Doctor.name FROM Patient, Doctor
+		WHERE Patient.doctor_id = Doctor.id
+		AND Patient.id=ANY(SELECT patient_id FROM Prescription
+			WHERE drug_id = ANY(SELECT drug_id from Sell
+				WHERE pharmacy_id=%(our_pharmacy)s))
+		AND (CASE WHEN %(include_name)s THEN Patient.name LIKE '%%'||%(name)s||'%%' ESCAPE '=' ELSE true END)
+		AND (CASE WHEN %(include_maxage)s THEN age < %(maxage)s ELSE true END)
+		AND (CASE WHEN %(include_minage)s THEN age > %(minage)s ELSE true END)
+		AND (CASE WHEN %(include_doctor)s THEN doctor_id = ANY(SELECT id FROM Doctor
+			WHERE name LIKE '%%'||%(doctor)s||'%%' ESCAPE '=') ELSE true END)
+		AND (CASE WHEN %(include_address)s THEN address LIKE '%%'||%(address)s||'%%' ESCAPE '=' ELSE true END)
+		AND (CASE WHEN %(include_drug)s THEN id = ANY(SELECT patient_id FROM Prescription
+			WHERE drug_id = ANY(SELECT id FROM Drug
 				WHERE name LIKE '%%'||%(drug)s||'%%' ESCAPE '=')) ELSE true END);
-				
+
 //TO DO: Display Patient Drugs
 
 -Find Doctor by Name, Specialty, Experience, Patient and any Drug he is Prescribing.
-	SELECT name, specialty, exp FROM Doctor 
-		WHERE id=ANY(SELECT doctor_id FROM Prescription 
-			WHERE drug_id = ANY(SELECT drug_id from Sell 
-				WHERE pharmacy_id=%(our_pharmacy)s)) 
-		AND (CASE WHEN %(include_name)s THEN Doctor.name LIKE '%%'||%(name)s||'%%' ESCAPE '=' ELSE true END) 
-		AND (CASE WHEN %(include_specialty)s THEN specialty LIKE '%%'||%(specialty)s||'%%' ESCAPE '=' ELSE true END) 
-		AND (CASE WHEN %(include_exp)s THEN exp = %(exp)s ELSE true END) 
-		AND (CASE WHEN %(include_patient)s THEN Doctor.id = ANY(SELECT doctor_id FROM Patient 
-			WHERE name LIKE '%%'||%(patient)s||'%%' ESCAPE '=') ELSE true END) 
+	SELECT name, specialty, exp FROM Doctor
+		WHERE id=ANY(SELECT doctor_id FROM Prescription
+			WHERE drug_id = ANY(SELECT drug_id from Sell
+				WHERE pharmacy_id=%(our_pharmacy)s))
+		AND (CASE WHEN %(include_name)s THEN Doctor.name LIKE '%%'||%(name)s||'%%' ESCAPE '=' ELSE true END)
+		AND (CASE WHEN %(include_specialty)s THEN specialty LIKE '%%'||%(specialty)s||'%%' ESCAPE '=' ELSE true END)
+		AND (CASE WHEN %(include_exp)s THEN exp = %(exp)s ELSE true END)
+		AND (CASE WHEN %(include_patient)s THEN Doctor.id = ANY(SELECT doctor_id FROM Patient
+			WHERE name LIKE '%%'||%(patient)s||'%%' ESCAPE '=') ELSE true END)
 		AND (CASE WHEN %(include_drug)s THEN Doctor.id = ANY(SELECT doctor_id FROM Prescription
-			WHERE drug_id = ANY(SELECT id FROM Drug 
+			WHERE drug_id = ANY(SELECT id FROM Drug
 				WHERE name LIKE '%%'||%(drug)s||'%%' ESCAPE '=')) ELSE true END);
 
 -Find BigPharma by Name, Phone, any Drug they are making and when they had a Contract with our Pharmacy.
-	SELECT name, phone FROM BigPharma 
-		WHERE (CASE WHEN %(include_name)s THEN BigPharma.name LIKE '%%'||%(name)s||'%%' ESCAPE '=' ELSE true END) 
-		AND (CASE WHEN %(include_phone)s THEN BigPharma.phone LIKE '%%'||%(phone)s||'%%' ESCAPE '=' ELSE true END) 
-		AND (CASE WHEN %(include_drug)s THEN BigPharma.id = ANY(SELECT bigpharma_id FROM Drug 
-			WHERE name LIKE '%%'||%(drug)s||'%%' ESCAPE '=') ELSE true END) 
-		AND (CASE WHEN %(include_contract)s THEN BigPharma.id = ANY(SELECT bigpharma_id FROM Contract 
-			WHERE start_date > %(start-date)s 
+	SELECT name, phone FROM BigPharma
+		WHERE (CASE WHEN %(include_name)s THEN BigPharma.name LIKE '%%'||%(name)s||'%%' ESCAPE '=' ELSE true END)
+		AND (CASE WHEN %(include_phone)s THEN BigPharma.phone LIKE '%%'||%(phone)s||'%%' ESCAPE '=' ELSE true END)
+		AND (CASE WHEN %(include_drug)s THEN BigPharma.id = ANY(SELECT bigpharma_id FROM Drug
+			WHERE name LIKE '%%'||%(drug)s||'%%' ESCAPE '=') ELSE true END)
+		AND (CASE WHEN %(include_contract)s THEN BigPharma.id = ANY(SELECT bigpharma_id FROM Contract
+			WHERE start_date > %(start-date)s
 			AND end_date < %(end-date)s) ELSE true END);
 
 -Find Drug by Pharma, Formula, PriceRange and whether we are selling it.
-	SELECT name, formula, bigpharma_id FROM Drug 
-		WHERE (CASE WHEN %(include_price)s THEN (SELECT price FROM Sell 
-				WHERE Sell.drug_id = Drug.id) > %(min_price)s 
-			AND    (SELECT price FROM Sell 
-				WHERE Sell.drug_id = Drug.id) < %(max_price)s ELSE true END) 
-		AND (CASE WHEN %(include_name)s THEN name LIKE '%%'||%(name)s||'%%' ESCAPE '=' ELSE true END) 
-		AND (CASE WHEN %(include_formula)s THEN formula LIKE '%%'||%(formula)s||'%%' ESCAPE '=' ELSE true END) 
+	SELECT name, formula, bigpharma_id FROM Drug
+		WHERE (CASE WHEN %(include_price)s THEN (SELECT price FROM Sell
+				WHERE Sell.drug_id = Drug.id) > %(min_price)s
+			AND    (SELECT price FROM Sell
+				WHERE Sell.drug_id = Drug.id) < %(max_price)s ELSE true END)
+		AND (CASE WHEN %(include_name)s THEN name LIKE '%%'||%(name)s||'%%' ESCAPE '=' ELSE true END)
+		AND (CASE WHEN %(include_formula)s THEN formula LIKE '%%'||%(formula)s||'%%' ESCAPE '=' ELSE true END)
 		AND (CASE WHEN %(we_sell)s THEN Drug.id = ANY(SELECT drug_id FROM Sell
-			WHERE pharmacy_id = ANY(SELECT id FROM Pharmacy 
+			WHERE pharmacy_id = ANY(SELECT id FROM Pharmacy
 				WHERE Pharmacy.id=%(our_pharmacy)s)) ELSE true END)
 		AND (CASE WHEN %(we_dont_sell)s THEN Drug.id <> ALL(SELECT drug_id FROM Sell
-			WHERE pharmacy_id = ANY(SELECT id FROM Pharmacy 
+			WHERE pharmacy_id = ANY(SELECT id FROM Pharmacy
 				WHERE Pharmacy.id=%(our_pharmacy)s)) ELSE true END);
-				
+
 //Note: When nested, the expression "SELECT b FROM a" may not work. Instead, we may have to write "SELECT a.b FROM a". I have not corrected this yet. Let's try it first and see.
 
 -Find Prescriptions by Doctor, Patient, Date and Drug (in the ugliest way possible).
-	SELECT Patient.name, Doctor.name, Drug.name, date, dosage FROM Patient, Doctor, Drug, (SELECT patient_id, doctor_id, drug_id, date, dosage FROM Prescription 
-			WHERE (CASE WHEN %(include_doctor)s THEN doctor_id = ANY(SELECT id FROM Doctor 
-				WHERE name LIKE '%%'||%(doctor)s||'%%' ESCAPE '=') ELSE true END) 
-			AND (CASE WHEN %(include_patient)s THEN patient_id = ANY(SELECT id FROM Patient 
-				WHERE name LIKE '%%'||%(patient)s||'%%' ESCAPE '=') ELSE true END) 
-			AND (CASE WHEN %(include_date)s THEN date = %(date)s ELSE true END) 
-			AND (CASE WHEN %(include_drug)s THEN drug_id = ANY(SELECT id FROM Drug 
+	SELECT Patient.name, Doctor.name, Drug.name, date, dosage FROM Patient, Doctor, Drug, (SELECT patient_id, doctor_id, drug_id, date, dosage FROM Prescription
+			WHERE (CASE WHEN %(include_doctor)s THEN doctor_id = ANY(SELECT id FROM Doctor
+				WHERE name LIKE '%%'||%(doctor)s||'%%' ESCAPE '=') ELSE true END)
+			AND (CASE WHEN %(include_patient)s THEN patient_id = ANY(SELECT id FROM Patient
+				WHERE name LIKE '%%'||%(patient)s||'%%' ESCAPE '=') ELSE true END)
+			AND (CASE WHEN %(include_date)s THEN date = %(date)s ELSE true END)
+			AND (CASE WHEN %(include_drug)s THEN drug_id = ANY(SELECT id FROM Drug
 				WHERE name LIKE '%%'||%(drug)s||'%%' ESCAPE '=') ELSE true END)
-	) AS prescription_shit 
-		WHERE prescription_shit.patient_id = Patient.id 
+	) AS prescription_shit
+		WHERE prescription_shit.patient_id = Patient.id
 		AND prescription_shit.doctor_id = Doctor.id
-		AND prescription_shit.drug_id = Drug.id 
-		AND Drug.id = ANY(SELECT drug_id FROM Sell 
+		AND prescription_shit.drug_id = Drug.id
+		AND Drug.id = ANY(SELECT drug_id FROM Sell
 			WHERE pharmacy_id = %(our_pharmacy)s);
 
 -Find which drugs are used mostly by Old People.
 	SELECT name, formula FROM Drug
 	    WHERE (SELECT avg(age) FROM Patient
-	    	WHERE Patient.id = ANY(SELECT patient_id FROM Prescription 
+	    	WHERE Patient.id = ANY(SELECT patient_id FROM Prescription
 			WHERE Prescription.drug_id = ANY(SELECT id FROM Drug))) > 50;
 
 -Find which and how many Drugs we sell.
-	SELECT name, formula, bigpharma_id FROM Drug 
+	SELECT name, formula, bigpharma_id FROM Drug
 		WHERE id = ANY(SELECT drug_id FROM Sell
 			WHERE pharmacy_id = ANY(SELECT id FROM Pharmacy
-				WHERE id = %(our_pharmacy)s)); 
-	SELECT count(SELECT * FROM Drug 
-		WHERE Drug.id = ANY(SELECT drug_id FROM Sell 
+				WHERE id = %(our_pharmacy)s));
+	SELECT count(SELECT * FROM Drug
+		WHERE Drug.id = ANY(SELECT drug_id FROM Sell
 			WHERE Sell.pharmacy_id = (SELECT id FROM Pharmacy
 				WHERE id = %(our_pharmacy)s)));
 
 -Who Called Me?
 	(CASE %s WHEN ANY(SELECT BigPharma.phone FROM BigPharma)
 			THEN SELECT name, phone FROM BigPharma WHERE phone = %s
-	         WHEN ANY(SELECT Pharmacy.phone FROM Pharmacy) 
+	         WHEN ANY(SELECT Pharmacy.phone FROM Pharmacy)
 		 	THEN SELECT name, phone FROM Pharmacy WHERE phone = %s
-	         ELSE 'https://www.xo.gr/' END) 
-	
+	         ELSE 'https://www.xo.gr/' END)
+
 //Does it work?
 
 -Who Called Me Swag 2.0
 	SELECT name, phone FROM
 	(CASE %s WHEN ANY(SELECT BigPharma.phone FROM BigPharma)
 			THEN BigPharma
-	         WHEN ANY(SELECT Pharmacy.phone FROM Pharmacy) 
+	         WHEN ANY(SELECT Pharmacy.phone FROM Pharmacy)
 		 	THEN Pharmacy END) WHERE phone = %s
-			
+
 //Does it work?
-	
+
 -Find the BigPharmas that we work with.
-	SELECT name, phone FROM BigPharma 
-		WHERE BigPharma.id = ANY(SELECT bigpharma_id FROM Contract 
-			WHERE start_date<CURRENT_DATE 
-			AND end_date>CURRENT_DATE 
+	SELECT name, phone FROM BigPharma
+		WHERE BigPharma.id = ANY(SELECT bigpharma_id FROM Contract
+			WHERE start_date<CURRENT_DATE
+			AND end_date>CURRENT_DATE
 			AND Contract.pharmacy_id = %(our_pharmacy)s);
 
 -Find the BigPharmas we DONT work with.
-	SELECT name, phone FROM BigPharma 
-		WHERE BigPharma.id <> ALL(SELECT bigpharma_id FROM Contract 
-			WHERE start_date<CURRENT_DATE 
+	SELECT name, phone FROM BigPharma
+		WHERE BigPharma.id <> ALL(SELECT bigpharma_id FROM Contract
+			WHERE start_date<CURRENT_DATE
 			AND end_date>CURRENT_DATE
 			AND Contract.pharmacy_id = %(our_pharmacy)s);
 
 -Find the Drugs we DONT sell, made by Pharmas currently under Contract with us.
-	SELECT name FROM Drug 
-		WHERE id <> ALL(SELECT drug_id FROM Sell 
-			WHERE pharmacy_id=%(our_pharmacy)s) 
-		AND Drug.bigpharma_id = ANY(SELECT id FROM BigPharma 
-			WHERE id = ANY(SELECT bigpharma_id FROM Contract 
-				WHERE start_date<CURRENT_DATE 
+	SELECT name FROM Drug
+		WHERE id <> ALL(SELECT drug_id FROM Sell
+			WHERE pharmacy_id=%(our_pharmacy)s)
+		AND Drug.bigpharma_id = ANY(SELECT id FROM BigPharma
+			WHERE id = ANY(SELECT bigpharma_id FROM Contract
+				WHERE start_date<CURRENT_DATE
 				AND end_date>CURRENT_DATE));
 
 -List all drugs made by Pharmas that are NOT currently under contract with us.
-	SELECT name FROM Drug 
-		WHERE bigpharma_id <> ALL(SELECT id FROM BigPharma 
+	SELECT name FROM Drug
+		WHERE bigpharma_id <> ALL(SELECT id FROM BigPharma
 			WHERE id = ANY(SELECT bigpharma_id FROM Contract
 				WHERE start_date<CURRENT_DATE
-				AND end_date>CURRENT_DATE 
+				AND end_date>CURRENT_DATE
 				AND pharmacy_id=%(our_pharmacy)s));
 
--List all the drugs a Patient needs. 
-	SELECT drug_id, date, dosage FROM Prescription 
-		WHERE patient_id = (SELECT id FROM Patient 
+-List all the drugs a Patient needs.
+	SELECT drug_id, date, dosage FROM Prescription
+		WHERE patient_id = (SELECT id FROM Patient
 			WHERE name = %s);
