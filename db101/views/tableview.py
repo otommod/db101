@@ -15,8 +15,8 @@ class TableView:
         self.tree._tree.bind("<3>", self.on_right_click, add="+")
         self.tree.cell_edited.add_observer(self.on_changed)
 
-        self._fill()
-        self.m.changed.add_observer(self._fill)
+        # self.fill()
+        self.m.changed.add_observer(self.fill)
 
         # debug
         self.update.add_observer(print)
@@ -30,7 +30,7 @@ class TableView:
     def delete(keys):
         pass
 
-    def _fill(self):
+    def fill(self):
         self._destroy_popup_menu()
         self.tree.clear()
         # replace any NULL values with an em dash

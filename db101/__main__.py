@@ -5,7 +5,6 @@ import psycopg2
 
 import db101
 
-
 root = tk.Tk()
 root.title("Databaser 3000")
 root.rowconfigure(0, weight=1)
@@ -23,11 +22,13 @@ mainframe.configure(style="Main.TFrame")
 conn = psycopg2.connect(dbname="db101")
 table_mapper = db101.TableMapperFactory(conn)
 table_m = db101.TableModel(table_mapper)
-# table_v = db101.TableView(mainframe, model.Patient)
-table_c = db101.TableController(table_m.Patient, mainframe)
+table_v = db101.TableView(mainframe, table_m.Patient)
+table_c = db101.TableController(table_m.Patient, table_v)
 
 search_mapper = db101.SearchMapperFactory(conn)
 search_m = db101.SearchModel(search_mapper)
+search_v = db101.SearchView(root)
 
-table_c.v.tree.grid(row=0, column=0, sticky="nsew",  padx=2, pady=2)
+search_v.grid(row=0, column=0)
+# table_c.v.tree.grid(row=0, column=0, sticky="nsew",  padx=2, pady=2)
 root.mainloop()
