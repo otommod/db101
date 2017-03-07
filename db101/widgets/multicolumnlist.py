@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import font, ttk
 
 from ..observable import eventsource
-# from .singleentry import SingleEntry
 from .eventedscrollbar import EventedScrollbar
 
 
@@ -10,14 +9,14 @@ def font_width(text):
     return font.Font().measure(text)
 
 
-class EditableTreeview(ttk.Frame):
+class MultiColumnList(ttk.Frame):
     def __init__(self, parent, columns):
-        super(EditableTreeview, self).__init__(parent)
+        super(MultiColumnList, self).__init__(parent)
         self.columns = columns
 
         s = ttk.Style()
-        s.configure("Editable.TFrame", background="red")
-        self.configure(style="Editable.TFrame")
+        s.configure("Multicolumn.TFrame", background="red")
+        self.configure(style="Multicolumn.TFrame")
 
         self._tree = ttk.Treeview(self, show="headings", columns=columns)
         vsb = EventedScrollbar(self, orient="vertical", command=self.yview)
@@ -34,21 +33,17 @@ class EditableTreeview(ttk.Frame):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
 
-        self._tree.grid(row=0, column=0, sticky="nsew",  padx=2, pady=2)
-        vsb.grid(row=0, column=1, sticky="ns",     padx=2, pady=2)
-        hsb.grid(row=1, column=0, sticky="ew",     padx=2, pady=2)
+        self._tree.grid(row=0, column=0, sticky="nsew")
+        vsb.grid(row=0, column=1, sticky="ns")
+        hsb.grid(row=1, column=0, sticky="ew")
 
-        self.cell_entry = None
-        self._tree.bind("<1>", lambda *ignore: self.cancel_edit())
-        self._tree.bind("<Double-1>", self.on_double_click)
+        for c in self.winfo_children():
+            c.grid_configure(padx=2, pady=2)
+
         self._tree.bind("<3>", self.on_right_click)
 
     @eventsource
     def view_changed():
-        pass
-
-    @eventsource
-    def cell_edited(row, col, new_value):
         pass
 
     def xview(self, *args):
@@ -77,13 +72,15 @@ class EditableTreeview(ttk.Frame):
         """Adjust columns' width if necessary to fit every value."""
 
         for c in self.columns:
-            needed_width = max(font_width(self.set(i, c)) for i in
-                               self._tree.get_children(""))
+            try:
+                needed_width = max(font_width(self.set(i, c))
+                                   for i in self._tree.get_children(""))
+            except ValueError:
+                needed_width = 0
             if self._tree.column(c, option="width") < needed_width:
                 self._tree.column(c, width=needed_width)
 
     def clear(self):
-        self.cancel_edit()
         for i in self._tree.get_children(""):
             self._tree.delete(i)
 
@@ -95,46 +92,6 @@ class EditableTreeview(ttk.Frame):
         for i in items:
             self._tree.insert("", "end", values=i)
         self._resize_columns()
-
-    def edit_cell(self, row, col):
-        self.cancel_edit()
-
-        self.cell_entry = self._create_cell_entry(row, col)
-        self._place_cell_entry(row, col)
-        self.view_changed.add_observer(
-            lambda: self._place_cell_entry(row, col))
-
-    def cancel_edit(self):
-        if self.cell_entry is not None:
-            self.cell_entry.destroy()
-            self.cell_entry = None
-
-    def _create_cell_entry(self, row, col):
-        value = self.set(row, col)
-
-        entry = ttk.Entry(self._tree)
-        entry.insert(0, value)
-
-        def commit_entry(*ignore):
-            self.set(row, col, entry.get())
-            entry.destroy()
-
-        entry.focus_force()
-        entry.bind("<Return>", commit_entry)
-        entry.bind("<Escape>", lambda *ignore: entry.destroy())
-        return entry
-
-    def _place_cell_entry(self, row, col):
-        bbox = self._tree.bbox(row, col)
-        if not bbox:
-            self.cell_entry.place_forget()
-            return
-        x, y, width, height = bbox
-        self.cell_entry.place(x=x, y=y, width=width, height=height)
-
-    def on_double_click(self, event):
-        self.edit_cell(self._tree.identify_row(event.y),
-                       self._tree.identify_column(event.x))
 
     def on_right_click(self, event):
         selection = self._tree.selection()

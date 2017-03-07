@@ -26,11 +26,31 @@ class TableController:
 
 
 class SearchController:
-    def __init__(self, model, view):
+    def __init__(self, pharmacy_id, model, view):
+        self.pharmacy_id = pharmacy_id
         self.m = model
-        self.v = view
+        self.search_form = view
+        self.search_results = None
 
-        self.v.do_search.add_observer(self.on_search)
+        self.search_form.form_selected.add_observer(self.on_type_change)
+        self.search_form.do_search.add_observer(self.on_search)
+
+    def _clear_results(self):
+        if self.search_results is not None:
+            self.search_results.grid_forget()
+            self.search_results.destroy()
+            self.search_results = None
+
+    def on_type_change(self):
+        self._clear_results()
 
     def on_search(self, search_type, params):
-        TableView(self.m)
+        self._clear_results()
+        print("SearchController.on_search", search_type, params)
+
+        model = getattr(self.m, search_type)
+        model.bake(**{"our_pharmacy": self.pharmacy_id})
+        model.bake(**params)
+
+        self.search_results = TableView(self.search_form, model)
+        self.search_results.grid(row=2, column=0, columnspan=5)

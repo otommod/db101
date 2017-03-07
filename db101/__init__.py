@@ -1,7 +1,7 @@
-from .controller import TableController
+from .controller import TableController, SearchController
 from .models import TableModel, SearchModel
-from .views import TableView, SearchView
+from .views import EditableTableView, SearchView
 
-from .widgets import EditableTreeview, EventedScrollbar
+from .widgets import EditableMultiColumnList, EventedScrollbar, MultiColumnList
 
 from .mapper.sql import TableMapperFactory, SearchMapperFactory

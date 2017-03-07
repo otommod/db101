@@ -25,3 +25,6 @@ class ErrorView:
         ttk.Label(frame,
                   text=self.msg,
                   style="Error.TLabel").grid(row=1, column=0)
+        ttk.Button(frame,
+                   text="OK",
+                   command=self.window.destroy())
