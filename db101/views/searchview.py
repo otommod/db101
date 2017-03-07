@@ -103,7 +103,7 @@ class DoctorForm(ttk.Frame):
 
 
 class PatientForm(ttk.Frame):
-    ARGS = {"name", "age_min", "age_max", "address", "drug"}
+    ARGS = {"name", "doctor", "age_min", "age_max", "address", "drug"}
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -126,7 +126,7 @@ class PatientForm(ttk.Frame):
         self.address = ttk.Entry(self)
         self.address.grid(row=2, column=1, columnspan=4)
 
-        ttk.Label(self, text=" Doctor ").grid(row=3, column=0)
+        ttk.Label(self, text="Doctor").grid(row=3, column=0)
         self.doctor = ttk.Entry(self)
         self.doctor.grid(row=3, column=1, columnspan=4)
 
