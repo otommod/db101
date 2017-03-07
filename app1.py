@@ -2,48 +2,48 @@ import tkinter as tk
 from tkinter import ttk
 
 
+class Spinbox(ttk.Entry):
+    def __init__(self, master=None, **kw):
+        super().__init__(master, "ttk::spinbox", **kw)
+
+    def current(self, newindex=None):
+        return self.tk.call(self._w, "current", newindex)
+
+    def set(self, value):
+        return self.tk.call(self._w, "set", value)
+
+
 class DrugForm(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
-        L1 = ttk.Label(self, text=" BigPharma ")
-        L1.grid(row=0, column=0)
-
-        self.bigpharma = tk.Entry(self, bd=2)
+        ttk.Label(self, text=" BigPharma ").grid(row=0, column=0)
+        self.bigpharma = ttk.Entry(self, bd=2)
         self.bigpharma.grid(row=0, column=1, columnspan=4)
 
-        L2 = ttk.Label(self, text=" Formula ")
-        L2.grid(row=1, column=0)
-
-        self.formula = tk.Entry(self, bd=2)
+        ttk.Label(self, text=" Formula ").grid(row=1, column=0)
+        self.formula = ttk.Entry(self, bd=2)
         self.formula.grid(row=1, column=1, columnspan=4)
 
-        L3 = ttk.Label(self, text=" Sold? ")
-        L3.grid(row=2, column=0)
-
         self.sold = tk.IntVar()
+        ttk.Label(self, text=" Sold? ").grid(row=2, column=0)
         R1 = ttk.Radiobutton(self, text="Yes ", variable=self.sold, value=1)
+        R2 = ttk.Radiobutton(self, text="No", variable=self.sold, value=2)
+        R3 = ttk.Radiobutton(self, text="Don't care", variable=self.sold, value=3)
+
         R1.grid(row=2, column=1)
-
-        R2 = ttk.Radiobutton(self, text="No ", variable=self.sold, value=2)
         R2.grid(row=2, column=2)
-
-        R3 = ttk.Radiobutton(self, text="I don't know ", variable=self.sold, value=3)
         R3.grid(row=2, column=3, columnspan=2)
+        R1.invoke()
 
-        L4 = ttk.Label(self, text=" Price ")
-        L4.grid(row=3, column=0)
+        ttk.Label(self, text="Price").grid(row=3, column=0)
 
-        L5 = ttk.Label(self, text="min:")
-        L5.grid(row=3, column=1)
-
-        self.price_min = tk.Spinbox(self, from_=0, to=float("Inf"), width=3)
+        ttk.Label(self, text="min:").grid(row=3, column=1)
+        self.price_min = Spinbox(self, from_=0, to=float("Inf"), width=3)
         self.price_min.grid(row=3, column=2)
 
-        L6 = ttk.Label(self, text="max:")
-        L6.grid(row=3, column=3)
-
-        self.price_max = tk.Spinbox(self, from_=0, to=float("Inf"), width=3)
+        ttk.Label(self, text="max:").grid(row=3, column=3)
+        self.price_max = Spinbox(self, from_=0, to=float("Inf"), width=3)
         self.price_max.grid(row=3, column=4)
 
         B1 = ttk.Button(self, text=" Search ", command=lambda: print(self.get()))
@@ -61,34 +61,24 @@ class DoctorForm(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
-        L1 = ttk.Label(self, text=" Name ")
-        L1.grid(row=0, column=0)
-
-        self.name = tk.Entry(self, bd=2)
+        ttk.Label(self, text=" Name ").grid(row=0, column=0)
+        self.name = ttk.Entry(self, bd=2)
         self.name.grid(row=0, column=1)
 
-        L2 = ttk.Label(self, text=" Specialty ")
-        L2.grid(row=1, column=0)
-
-        self.specialty = tk.Entry(self, bd=2)
+        ttk.Label(self, text=" Specialty ").grid(row=1, column=0)
+        self.specialty = ttk.Entry(self, bd=2)
         self.specialty.grid(row=1, column=1)
 
-        L3 = ttk.Label(self, text=" Experience ")
-        L3.grid(row=2, column=0)
-
-        self.experience = tk.Spinbox(self, from_=0, to=float("Inf"), width=2)
+        ttk.Label(self, text=" Experience ").grid(row=2, column=0)
+        self.experience = Spinbox(self, from_=0, to=float("Inf"), width=2)
         self.experience.grid(row=2, column=1)
 
-        L4 = ttk.Label(self, text=" Patient ")
-        L4.grid(row=3, column=0)
-
-        self.patient = tk.Entry(self, bd=2)
+        ttk.Label(self, text=" Patient ").grid(row=3, column=0)
+        self.patient = ttk.Entry(self, bd=2)
         self.patient.grid(row=3, column=1)
 
-        L5 = ttk.Label(self, text=" Drug ")
-        L5.grid(row=4, column=0)
-
-        self.drug = tk.Entry(self, bd=2)
+        ttk.Label(self, text=" Drug ").grid(row=4, column=0)
+        self.drug = ttk.Entry(self, bd=2)
         self.drug.grid(row=4, column=1)
 
         B1 = ttk.Button(self, text=" Search ", command=lambda: print(self.get()))
@@ -106,43 +96,30 @@ class PatientForm(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
-        L1 = ttk.Label(self, text=" Name ")
-        L1.grid(row=0, column=0)
-
-        self.name = tk.Entry(self, bd=2)
+        ttk.Label(self, text=" Name ").grid(row=0, column=0)
+        self.name = ttk.Entry(self, bd=2)
         self.name.grid(row=0, column=1, columnspan=4)
 
-        L2 = ttk.Label(self, text=" Age ")
-        L2.grid(row=1, column=0)
+        ttk.Label(self, text=" Age ").grid(row=1, column=0)
 
-        L3 = ttk.Label(self, text="min:")
-        L3.grid(row=1, column=1)
-
-        self.age_min = tk.Spinbox(self, from_=0, to=float("Inf"), width=2)
+        ttk.Label(self, text="min:").grid(row=1, column=1)
+        self.age_min = Spinbox(self, from_=0, to=float("Inf"), width=2)
         self.age_min.grid(row=1, column=2)
 
-        L4 = ttk.Label(self, text="max:")
-        L4.grid(row=1, column=3)
-
-        self.age_max = tk.Spinbox(self, from_=0, to=float("Inf"), width=2)
+        ttk.Label(self, text="max:").grid(row=1, column=3)
+        self.age_max = .Spinbox(self, from_=0, to=float("Inf"), width=2)
         self.age_max.grid(row=1, column=4)
 
-        L4 = ttk.Label(self, text=" Adress ")
-        L4.grid(row=2, column=0)
-
-        self.adress = tk.Entry(self, bd=2)
+        ttk.Label(self, text=" Adress ").grid(row=2, column=0)
+        self.adress = ttk.Entry(self, bd=2)
         self.adress.grid(row=2, column=1, columnspan=4)
 
-        L5 = ttk.Label(self, text=" Doctor ")
-        L5.grid(row=3, column=0)
-
-        self.doctor = tk.Entry(self, bd=2)
+        ttk.Label(self, text=" Doctor ").grid(row=3, column=0)
+        self.doctor = ttk.Entry(self, bd=2)
         self.doctor.grid(row=3, column=1, columnspan=4)
 
-        L6 = ttk.Label(self, text=" Drug ")
-        L6.grid(row=4, column=0)
-
-        self.drug = tk.Entry(self, bd=2)
+        ttk.Label(self, text=" Drug ").grid(row=4, column=0)
+        self.drug = ttk.Entry(self, bd=2)
         self.drug.grid(row=4, column=1, columnspan=4)
 
         B1 = ttk.Button(self, text=" Search ", command=lambda: print(self.get()))
@@ -161,34 +138,24 @@ class BigPharmaForm(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
-        L1 = ttk.Label(self, text=" Name ")
-        L1.grid(row=0, column=0)
-
-        self.name = tk.Entry(self, bd=2)
+        ttk.Label(self, text=" Name ").grid(row=0, column=0)
+        self.name = ttk.Entry(self, bd=2)
         self.name.grid(row=0, column=1)
 
-        L2 = ttk.Label(self, text=" Phone ")
-        L2.grid(row=1, column=0)
-
-        self.phone = tk.Entry(self, bd=2)
+        ttk.Label(self, text=" Phone ").grid(row=1, column=0)
+        self.phone = ttk.Entry(self, bd=2)
         self.phone.grid(row=1, column=1)
 
-        L3 = ttk.Label(self, text=" Drug ")
-        L3.grid(row=2, column=0)
-
-        self.drug = tk.Entry(self, bd=2)
+        ttk.Label(self, text=" Drug ").grid(row=2, column=0)
+        self.drug = ttk.Entry(self, bd=2)
         self.drug.grid(row=2, column=1)
 
-        L4 = ttk.Label(self, text=" Contract Start ")
-        L4.grid(row=3, column=0)
-
-        self.contract_start = tk.Entry(self, bd=2)
+        ttk.Label(self, text=" Contract Start ").grid(row=3, column=0)
+        self.contract_start = ttk.Entry(self, bd=2)
         self.contract_start.grid(row=3, column=1)
 
-        L5 = ttk.Label(self, text=" Contract End ")
-        L5.grid(row=4, column=0)
-
-        self.contract_end = tk.Entry(self, bd=2)
+        ttk.Label(self, text=" Contract End ").grid(row=4, column=0)
+        self.contract_end = ttk.Entry(self, bd=2)
         self.contract_end.grid(row=4, column=1)
 
         B1 = ttk.Button(self, text=" Search ", command=lambda: print(self.get()))
@@ -206,28 +173,20 @@ class PrescriptionForm(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
-        L1 = ttk.Label(self, text=" Doctor ")
-        L1.grid(row=0, column=0)
-
-        self.doctor = tk.Entry(self, bd=2)
+        ttk.Label(self, text=" Doctor ").grid(row=0, column=0)
+        self.doctor = ttk.Entry(self, bd=2)
         self.doctor.grid(row=0, column=1)
 
-        L2 = ttk.Label(self, text=" Patient ")
-        L2.grid(row=1, column=0)
-
-        self.patient = tk.Entry(self, bd=2)
+        ttk.Label(self, text=" Patient ").grid(row=1, column=0)
+        self.patient = ttk.Entry(self, bd=2)
         self.patient.grid(row=1, column=1)
 
-        L3 = ttk.Label(self, text=" Date ")
-        L3.grid(row=2, column=0)
-
-        self.date = tk.Entry(self, bd=2)
+        ttk.Label(self, text=" Date ").grid(row=2, column=0)
+        self.date = ttk.Entry(self, bd=2)
         self.date.grid(row=2, column=1)
 
-        L4 = ttk.Label(self, text=" Drug ")
-        L4.grid(row=3, column=0)
-
-        self.drug = tk.Entry(self, bd=2)
+        ttk.Label(self, text=" Drug ").grid(row=3, column=0)
+        self.drug = ttk.Entry(self, bd=2)
         self.drug.grid(row=3, column=1)
 
         B1 = ttk.Button(self, text=" Search ", command=lambda: print(self.get()))
@@ -250,7 +209,6 @@ class SearchForm(ttk.Frame):
         self.bigpharma_form = BigPharmaForm(self)
         self.prescription_form = PrescriptionForm(self)
         self.curform = None
-    
 
         R1 = ttk.Radiobutton(self, text="Doctor",
                              command=self._switch_to(self.doctor_form),value = '1')
