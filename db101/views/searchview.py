@@ -45,11 +45,11 @@ class DrugForm(ttk.Frame):
         ttk.Label(self, text="Price").grid(row=3, column=0)
 
         ttk.Label(self, text="min:").grid(row=3, column=1)
-        self.price_min = Spinbox(self, from_=0, to=float("Inf"), width=3)
+        self.price_min = Spinbox(self, from_=0, to=float("Inf"), width=4)
         self.price_min.grid(row=3, column=2)
 
         ttk.Label(self, text="max:").grid(row=3, column=3)
-        self.price_max = Spinbox(self, from_=0, to=float("Inf"), width=3)
+        self.price_max = Spinbox(self, from_=0, to=float("Inf"), width=4)
         self.price_max.grid(row=3, column=4)
 
         B1 = ttk.Button(self, text="Search",
@@ -79,7 +79,7 @@ class DoctorForm(ttk.Frame):
         self.specialty.grid(row=1, column=1)
 
         ttk.Label(self, text="Experience").grid(row=2, column=0)
-        self.exp = Spinbox(self, from_=0, to=float("Inf"), width=2)
+        self.exp = Spinbox(self, from_=0, to=float("Inf"), width=3)
         self.exp.grid(row=2, column=1)
 
         ttk.Label(self, text="Patient Name").grid(row=3, column=0)
@@ -115,11 +115,11 @@ class PatientForm(ttk.Frame):
         ttk.Label(self, text=" Age ").grid(row=1, column=0)
 
         ttk.Label(self, text="min:").grid(row=1, column=1)
-        self.age_min = Spinbox(self, from_=0, to=float("Inf"), width=2)
+        self.age_min = Spinbox(self, from_=0, to=float("Inf"), width=3)
         self.age_min.grid(row=1, column=2)
 
         ttk.Label(self, text="max:").grid(row=1, column=3)
-        self.age_max = Spinbox(self, from_=0, to=float("Inf"), width=2)
+        self.age_max = Spinbox(self, from_=0, to=float("Inf"), width=3)
         self.age_max.grid(row=1, column=4)
 
         ttk.Label(self, text=" Address ").grid(row=2, column=0)
