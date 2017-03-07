@@ -139,6 +139,6 @@ class EditableTreeview(ttk.Frame):
     def on_right_click(self, event):
         selection = self._tree.selection()
         clicked_on = self._tree.identify_row(event.y)
-        print(selection)
+        print("selected", selection)
         if clicked_on not in selection:
             self._tree.selection_set(clicked_on)

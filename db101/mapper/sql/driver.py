@@ -15,7 +15,6 @@ class PostgresDriver:
 
     def execute(self, query, params=None):
         with self.conn.cursor() as cur:
-            print(params)
             print(cur.mogrify(query, params).decode())
 
             try:
