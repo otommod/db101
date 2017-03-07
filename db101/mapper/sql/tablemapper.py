@@ -69,7 +69,7 @@ class TableMapper:
         if not ok:
             return ok, result
         result_type = self.factory.result_wrapper(fields)
-        return [result_type(*i) for i in result]
+        return True, [result_type(*i) for i in result]
 
     def set(self, key, updates):
         q = self.builder.update(*updates.keys())

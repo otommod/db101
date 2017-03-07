@@ -9,7 +9,7 @@ def namedtuple_wrapper(fields):
 
 
 class MapperFactory:
-    def __init__(self, conn, result_wrapper=namedtuple):
+    def __init__(self, conn, result_wrapper=namedtuple_wrapper):
         self.conn = conn
         self.driver = PostgresDriver(conn)
         self.result_wrapper = result_wrapper
