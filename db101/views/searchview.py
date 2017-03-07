@@ -52,7 +52,8 @@ class DrugForm(ttk.Frame):
         self.price_max = Spinbox(self, from_=0, to=float("Inf"), width=3)
         self.price_max.grid(row=3, column=4)
 
-        B1 = ttk.Button(self, text=" Search ", command=lambda: print(self.get()))
+        B1 = ttk.Button(self, text="Search",
+                        command=lambda: self.do_search(self.get()))
         B1.grid(row=4, column=5)
 
     def get(self):
@@ -64,32 +65,33 @@ class DrugForm(ttk.Frame):
 
 
 class DoctorForm(ttk.Frame):
-    ARGS = {"name", "specialty", "experience", "patient", "drug"}
+    ARGS = {"name", "specialty", "exp", "patient", "drug"}
 
     def __init__(self, parent):
         super().__init__(parent)
 
-        ttk.Label(self, text=" Name ").grid(row=0, column=0)
+        ttk.Label(self, text="Doctor Name").grid(row=0, column=0)
         self.name = ttk.Entry(self)
         self.name.grid(row=0, column=1)
 
-        ttk.Label(self, text=" Specialty ").grid(row=1, column=0)
+        ttk.Label(self, text="Specialty").grid(row=1, column=0)
         self.specialty = ttk.Entry(self)
         self.specialty.grid(row=1, column=1)
 
-        ttk.Label(self, text=" Experience ").grid(row=2, column=0)
-        self.experience = Spinbox(self, from_=0, to=float("Inf"), width=2)
-        self.experience.grid(row=2, column=1)
+        ttk.Label(self, text="Experience").grid(row=2, column=0)
+        self.exp = Spinbox(self, from_=0, to=float("Inf"), width=2)
+        self.exp.grid(row=2, column=1)
 
-        ttk.Label(self, text=" Patient ").grid(row=3, column=0)
+        ttk.Label(self, text="Patient Name").grid(row=3, column=0)
         self.patient = ttk.Entry(self)
         self.patient.grid(row=3, column=1)
 
-        ttk.Label(self, text=" Drug ").grid(row=4, column=0)
+        ttk.Label(self, text="Drug").grid(row=4, column=0)
         self.drug = ttk.Entry(self)
         self.drug.grid(row=4, column=1)
 
-        B1 = ttk.Button(self, text=" Search ", command=lambda: print(self.get()))
+        B1 = ttk.Button(self, text="Search",
+                        command=lambda: self.do_search(self.get()))
         B1.grid(row=5, column=3)
 
     def get(self):
@@ -132,7 +134,8 @@ class PatientForm(ttk.Frame):
         self.drug = ttk.Entry(self)
         self.drug.grid(row=4, column=1, columnspan=4)
 
-        B1 = ttk.Button(self, text=" Search ", command=lambda: print(self.get()))
+        B1 = ttk.Button(self, text="Search",
+                        command=lambda: self.do_search(self.get()))
         B1.grid(row=5, column=5)
 
     def get(self):
@@ -169,7 +172,8 @@ class BigPharmaForm(ttk.Frame):
         self.contract_end = ttk.Entry(self)
         self.contract_end.grid(row=4, column=1)
 
-        B1 = ttk.Button(self, text=" Search ", command=lambda: print(self.get()))
+        B1 = ttk.Button(self, text="Search",
+                        command=lambda: self.do_search(self.get()))
         B1.grid(row=5, column=3)
 
     def get(self):
@@ -202,7 +206,8 @@ class PrescriptionForm(ttk.Frame):
         self.drug = ttk.Entry(self)
         self.drug.grid(row=3, column=1)
 
-        B1 = ttk.Button(self, text=" Search ", command=lambda: print(self.get()))
+        B1 = ttk.Button(self, text="Search",
+                        command=lambda: self.do_search(self.get()))
         B1.grid(row=4, column=3)
 
     def get(self):
@@ -257,16 +262,19 @@ class SearchView(ttk.Frame):
 
         R1.invoke()
 
-        ttk.Frame(self).grid(row=2, column=0, columnspan=5)
-
     def _switch_to(self, new_form):
         def inner():
             if self.curform:
                 self.curform.grid_forget()
             new_form.grid(row=1, column=0, columnspan=5)
             self.curform = new_form
+            self.form_selected()
         return inner
 
     @eventsource
     def do_search(search_type, params):
+        pass
+
+    @eventsource
+    def form_selected(self):
         pass

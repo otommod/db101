@@ -18,21 +18,23 @@ class SearchMapper:
 
     @classmethod
     def _escape(cls, term):
+        if not hasattr(term, "replace"):
+            return term
         return (term.replace(cls.ESCAPE_CHAR, 2*cls.ESCAPE_CHAR)
                     .replace("%", cls.ESCAPE_CHAR + "%")
                     .replace("_", cls.ESCAPE_CHAR + "_"))
 
-    def query(self, **kwargs):
-        params = {"include_" + k: False for k in self.ARGS}
-        params.update({k: None for k in self.ARGS})
-        for k, v in kwargs.items():
-            params[k] = v
-            params["include_" + k] = True
+    def query(self, given_params):
+        params = {k: None for k in self.ARGS}
+        params.update({"include_" + k: False for k in self.ARGS})
+        params.update({"include_" + k: True for k in given_params})
+        params.update(given_params)
 
         if self.ESCAPE:
-            params = {self._escape(k) if k in self.ESCAPE else k: v
+            params = {k: self._escape(v) if k in self.ESCAPE else v
                       for k, v in params.items()}
 
+        print("SearchMapper.query", params)
         ok, results = self.factory.execute(self.QUERY, params)
         if not ok:
             return ok, results

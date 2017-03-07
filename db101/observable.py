@@ -25,8 +25,6 @@ class eventsource(object):
         self.__name__ = method.__name__
 
     def __get__(self, obj, objtype):
-        print("eventsource.__get__(%s, %s)" % (obj, objtype))
-
         if obj is None:
             return self
         if self.__name__ not in obj.__dict__:
