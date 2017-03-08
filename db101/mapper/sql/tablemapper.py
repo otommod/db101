@@ -15,8 +15,8 @@ class SQLTable:
     def _wrapper(self, fields):
         return self._factory.result_wrapper(fields)
 
-    def _execute(self, params=None):
-        return self._factory.execute(params)
+    def _execute(self, query, params=None):
+        return self._factory.execute(query, params)
 
     def get(self, fields, order_by="", descending=False):
         q = self.builder.select(*fields,

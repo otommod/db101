@@ -1,5 +1,5 @@
 from .views import ErrorView, TableView, QuerySubView
-from .exceptions import InvalidOperationError
+from .exceptions import ModelError
 
 
 class TableController:
@@ -10,18 +10,25 @@ class TableController:
 
         self.v.update.add_observer(self.on_update)
         self.v.delete.add_observer(self.on_delete)
+        self.v.created.add_observer(self.on_insert)
 
     def on_update(self, key, changes):
         try:
             self.m.set(key, **changes)
-        except InvalidOperationError as e:
+        except ModelError as e:
             ErrorView(e)
 
     def on_delete(self, keys):
         try:
             for k in keys:
                 self.m.delete(k)
-        except InvalidOperationError as e:
+        except ModelError as e:
+            ErrorView(e)
+
+    def on_insert(self, new_item):
+        try:
+            self.m.append(new_item)
+        except ModelError as e:
             ErrorView(e)
 
 
