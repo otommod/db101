@@ -25,10 +25,15 @@ table_m = db101.TableModel(table_mapper)
 table_v = db101.EditableTableView(mainframe, table_m.Patient)
 table_c = db101.TableController(table_m.Patient, table_v)
 
-search_mapper = db101.SearchMapperFactory(conn)
-search_m = db101.SearchModel(search_mapper)
+search_m = db101.General("")
 search_v = db101.SearchView(root)
 search_c = db101.SearchController(1, search_m, search_v)
+
+pharmacy_sql = db101.mapper.sql.QueryMapper(conn)
+pharmacy = db101.models.Pharmacy(1, pharmacy_sql)
+app_view = db101.views.AppView(root)
+app = db101.controller.AppController(app_view, pharmacy)
+app_view.grid(row=1, column=0)
 
 search_v.grid(row=0, column=0)
 # table_c.v.tree.grid(row=0, column=0, sticky="nsew",  padx=2, pady=2)

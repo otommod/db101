@@ -3,7 +3,7 @@ from functools import partial
 
 from ..observable import eventsource
 from ..schema import SCHEMA
-from .exceptions import InvalidKeyError, InvalidOperationError
+from ..exceptions import InvalidKeyError, InvalidOperationError
 
 
 class Table(namedtuple("Table", "name key fields db")):
@@ -50,12 +50,9 @@ class TableModel:
         t = self._tables[table]
         if not fields:
             fields = t.fields
-        ok, result = self._mapper_for(table).get(fields,
-                                                 order_by=order_by,
-                                                 descending=descending)
-        if not ok:
-            raise InvalidOperationError(result)
-        return result
+        return self._mapper_for(table).get(fields,
+                                           order_by=order_by,
+                                           descending=descending)
 
     def set(self, table, *key, **updates):
         t = self._tables[table]
@@ -70,9 +67,7 @@ class TableModel:
         else:
             key = dict(zip(t.key, key))
 
-        ok, changes = self._mapper_for(table).set(key, updates)
-        if not ok:
-            raise InvalidOperationError(changes)
+        self._mapper_for(table).set(key, updates)
         self.changed(table)
 
     def append(self, table, item):
@@ -80,9 +75,7 @@ class TableModel:
         if isinstance(item, (list, tuple)):
             item = dict(zip(t.fields, item))
 
-        ok, changes = self._mapper_for(table).append(item)
-        if not ok:
-            raise InvalidOperationError(changes)
+        self._mapper_for(table).append(item)
         self.changed(table)
 
     def delete(self, table, *key):
@@ -92,7 +85,5 @@ class TableModel:
         else:
             key = dict(zip(t.key, key))
 
-        ok, changes = self._mapper_for(table).delete(key)
-        if not ok:
-            raise InvalidOperationError(changes)
+        self._mapper_for(table).delete(key)
         self.changed(table)

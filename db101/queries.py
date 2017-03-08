@@ -1,11 +1,3 @@
-STATEMENT = """
-SELECT Drug.name, BigPharma.name AS maker, Drug.formula, Sell.price FROM
-  Drug
-  JOIN BigPharma ON Drug.bigpharma_id = BigPharma.id
-  JOIN Sell ON Drug.id = Sell.drug_id
-WHERE Sell.pharmacy_id = %s;
-"""
-
 STATEMENT2 = """
 SELECT Doctor.*, Patient.name FROM
   Doctor
@@ -56,5 +48,74 @@ SELECT name FROM Patient
 
 NESTED2 = """
 SELECT name FROM Doctor
-    WHERE (SELECT AVG(age) FROM Patient WHERE Patient.doctor_id = Doctor.id) > 50;
+WHERE (SELECT AVG(age)
+       FROM Patient
+       WHERE Patient.doctor_id = Doctor.id) > 50
+;
 """
+
+
+class QueryMetaclass(type):
+    def __init__(cls, name, bases, attrs):
+        if not hasattr(cls, "ALL"):
+            cls.ALL = {}
+        if hasattr(cls, "RETURNS"):
+            cls.ALL[name] = cls
+
+        super().__init__(name, bases, attrs)
+
+
+class Query(metaclass=QueryMetaclass):
+    @classmethod
+    def validate(cls, named_params):
+        for p, v in named_params.items():
+            if p not in cls.ARGUMENTS:
+                return False
+            try:
+                cls.ARGUMENTS[p](v)
+                return True
+            except ValueError:
+                return False
+
+
+class DrugsOnSale(Query):
+    ARGUMENTS = {
+        "our_pharmacy": int
+    }
+    RETURNS = ("name", "maker", "formula", "price")
+
+
+class CountDrugsOnSale(Query):
+    ARGUMENTS = {
+        "our_pharmacy": int
+    }
+    RETURNS = ("count")
+
+
+class SearchQuery(Query):
+    pass
+
+
+class PatientSearchMapper(SearchQuery):
+    ARGUMENTS = {
+        "our_pharmacy": int,
+        "name": str,
+        "age_min": int,
+        "age_max": int,
+        "doctor": str,
+        "address": str,
+        "drug": str
+    }
+    RETURNS = ("name", "age", "address", "doctor")
+
+
+class DoctorSearchMapper(SearchQuery):
+    ARGUMENTS = {
+        "our_pharmacy": int,
+        "name": str,
+        "specialty": str,
+        "exp": int,
+        "patient": str,
+        "drug": str
+    }
+    RETURNS = ("name", "specialty", "exp")

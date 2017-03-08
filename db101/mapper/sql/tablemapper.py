@@ -65,11 +65,9 @@ class TableMapper:
         q = self.builder.select(*fields,
                                 order_by=order_by,
                                 descending=descending)
-        ok, result = self.factory.execute(q)
-        if not ok:
-            return ok, result
         result_type = self.factory.result_wrapper(fields)
-        return True, [result_type(*i) for i in result]
+        data = self.factory.execute(q)
+        return [result_type(*i) for i in data]
 
     def set(self, key, updates):
         q = self.builder.update(*updates.keys())

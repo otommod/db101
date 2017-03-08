@@ -1,5 +1,7 @@
 import psycopg2
 
+from ...exceptions import ModelError
+
 
 class PostgresDriver:
     # TODO: The first time a command is executed, a new transaction is created.
@@ -20,11 +22,11 @@ class PostgresDriver:
             try:
                 cur.execute(query, params)
             except psycopg2.Error as e:
-                return False, e
+                raise ModelError(e)
 
             try:
-                return True, cur.fetchall()
+                return cur.fetchall()
             except psycopg2.ProgrammingError:
-                return True, cur.rowcount
+                return cur.rowcount
             except psycopg2.Error as e:
-                return False, e
+                return ModelError(e)
