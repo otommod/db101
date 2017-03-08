@@ -8,25 +8,20 @@ class QuerySubView(ttk.Frame):
             "How many drugs do we sell?": HowManyDrugsWeSell,
         }[query]
 
-    def __init__(self, parent, model):
-        super().__init__(parent)
-        self.model = model
-
 
 class HowManyDrugsWeSell(QuerySubView):
     def __init__(self, parent, model):
-        super().__init__(parent, model)
+        super().__init__(parent)
+        self.label = ttk.Label(self)
 
         ttk.Label(self, text="Our pharmacy is currently selling").grid()
-
-        self.label = ttk.Label(self)
         self.label.grid()
-
         ttk.Label(self, text="different drug(s)").grid()
 
-        self.model.changed.add_observer(self.render)
+        self.count = model.count_drugs_on_sale()
+        self.count.changed.add_observer(self.render)
         self.render()
 
     def render(self):
-        number = self.model.count_drugs_on_sale()
+        number = self.count.get()
         self.label.configure(text=str(number))

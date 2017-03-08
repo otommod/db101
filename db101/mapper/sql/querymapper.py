@@ -4,6 +4,16 @@ from .helpers import namedtuple_wrapper
 from .queries import SQLQuery
 
 
+class QueryResult:
+    def __init__(self, execute, query, params=None):
+        self._execute = execute
+        self._query = query
+        self._params = params
+
+    def get(self, fields):
+        return self._execute(self._query, self._params)
+
+
 class QueryMapper:
     def __init__(self, conn, result_wrapper=namedtuple_wrapper):
         self.conn = conn
@@ -11,7 +21,7 @@ class QueryMapper:
         self.result_wrapper = result_wrapper
 
     def execute(self, modelquery, params=None):
-        print(SQLQuery._registry)
+        print("QueryMapper.execute", SQLQuery._registry)
         query = SQLQuery._registry[type(modelquery).__name__]
 
         # FIXME
@@ -20,5 +30,4 @@ class QueryMapper:
         query_obj.RETURNS = modelquery.RETURNS
         made_params = query_obj.prepare(params)
 
-        print(query.QUERY, made_params)
-        return self.driver.execute(query.QUERY, made_params)
+        return QueryResult(self.driver.execute, query.QUERY, made_params)

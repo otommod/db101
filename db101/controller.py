@@ -46,11 +46,11 @@ class SearchController:
     def on_search(self, search_type, params):
         self._clear_results()
 
-        model = getattr(self.m, search_type)
-        model.bake(**params)
+        model = getattr(self.pharmacy, search_type + "_search")(params)
+        print(model)
 
-        self.search_results = TableView(self.search_form, model)
-        self.search_results.grid(row=2, column=0, columnspan=5)
+        self.results_view = TableView(self.search_form, model)
+        self.results_view.grid(row=2, column=0, columnspan=5)
 
 
 class AppController:
@@ -64,8 +64,9 @@ class AppController:
 
     def on_query_selection(self, query):
         QueryView = QuerySubView.lookup(query)
+
         query_view = QueryView(self.view, self.pharmacy)
-        self.view.show_query(query_view)
+        self.view.add_subview(query_view)
 
     def on_search(self):
         pass

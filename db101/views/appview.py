@@ -52,8 +52,14 @@ class AppView(ttk.Frame):
     def tables_please():
         pass
 
-    def show_query(self, query_view):
-        if self.subview is not None:
-            self.subview.grid_forget()
+    def add_subview(self, query_view):
+        self.clear_subview()
+
         self.subview = query_view
         self.subview.grid(in_=self, row=0, column=0)
+
+    def clear_subview(self):
+        if self.subview is not None:
+            self.subview.grid_forget()
+            self.subview.destroy()
+            self.subview = None

@@ -61,11 +61,11 @@ class SQLSearchQuery(SQLQuery):
         return params
 
 
-class PatientSearchMapper(SQLSearchQuery):
+class PatientSearch(SQLSearchQuery):
     QUERY_FILE = "patient_search"
     ESCAPE = {"name", "doctor", "address", "drug"}
 
 
-class DoctorSearchMapper(SQLSearchQuery):
+class DoctorSearch(SQLSearchQuery):
     QUERY_FILE = "doctor_search"
     ESCAPE = {"name", "specialty", "patient", "drug"}

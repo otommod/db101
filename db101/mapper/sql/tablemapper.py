@@ -9,32 +9,37 @@ class SQLTable:
         return {prefix + f: v for f, v in dictionary.items()}
 
     def __init__(self, factory, tabledef):
-        self.factory = factory
-        self.tabledef = tabledef
+        self._factory = factory
         self.builder = QueryBuilder(tabledef.name, tabledef.key)
+
+    def _wrapper(self, fields):
+        return self._factory.result_wrapper(fields)
+
+    def _execute(self, params=None):
+        return self._factory.execute(params)
 
     def get(self, fields, order_by="", descending=False):
         q = self.builder.select(*fields,
                                 order_by=order_by,
                                 descending=descending)
-        result_type = self.factory.result_wrapper(fields)
-        data = self.factory.execute(q)
+        result_type = self._wrapper(fields)
+        data = self._execute(q)
         return [result_type(*i) for i in data]
 
     def set(self, key, updates):
         q = self.builder.update(*updates.keys())
-        return self.factory.execute(q, {
+        return self._execute(q, {
             **self._prefix_dict(key, "key_"),
             **self._prefix_dict(updates, "new_")
         })
 
     def append(self, values):
         q = self.builder.insert(*values.keys())
-        return self.factory.execute(q, [tuple(values.values())])
+        return self._execute(q, [tuple(values.values())])
 
     def delete(self, key):
         q = self.builder.delete()
-        return self.factory.execute(q, self._prefix_dict(key, "key_"))
+        return self._execute(q, self._prefix_dict(key, "key_"))
 
 
 class TableMapper:

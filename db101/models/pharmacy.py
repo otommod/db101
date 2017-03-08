@@ -7,10 +7,6 @@ class Pharmacy(Model):
             "our_pharmacy": pharmacy_id,
         })
 
-    # @eventsource
-    # def changed():
-    #     pass
-
 
 class DrugsOnSale(Pharmacy.Query):
     ARGUMENTS = {
