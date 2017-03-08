@@ -2,8 +2,10 @@ import tkinter as tk
 from tkinter import ttk
 from functools import partial
 
-from . import SearchView, QuerySubView
-from ..observable import eventsource
+from .. import models
+from .editabletableview import EditableTableView
+from .querysubview import QuerySubView
+from .searchview import SearchView
 
 
 def nop(*a, **kw):
@@ -123,22 +125,16 @@ class MainView(ttk.Frame):
         self.tabs.select(self.search_tabs[search_type])
 
     def __on_table_click(self, tablename):
+        self._ensure_tabs()
+
         table = tablename.lower()
         if table == "pharmaceutical":
             table = "bigpharma"
 
-        if table in self.table_tabs:
-            self.tabs.select(self.table_tabs[table])
-        else:
-            self.table_request(table)
+        if table not in self.table_tabs:
+            table_model = models.NamedTable.lookup(table)
+            table_view = EditableTableView(self, table_model)
+            self.tabs.add(table_view, text="Table %s" % tablename)
+            self.table_tabs[table] = self.tabs.index("end") - 1
 
-    def add_table(self, table, tableview):
-        self._ensure_tabs()
-
-        self.tabs.add(tableview, text="Table %s" % table)
-        self.table_tabs[table] = self.tabs.index("end") - 1
         self.tabs.select(self.table_tabs[table])
-
-    @eventsource
-    def table_request(tablename):
-        pass
