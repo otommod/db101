@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from functools import partial
 
-from . import MultiSearchView, QuerySubView
+from . import SearchView, QuerySubView
 from ..observable import eventsource
 
 
@@ -115,7 +115,7 @@ class MainView(ttk.Frame):
             search_type = "bigpharma"
 
         if search_type not in self.search_tabs:
-            search_view = MultiSearchView.lookup(search_type)
+            search_view = SearchView.lookup(search_type)
             self.tabs.add(search_view(self.tabs, self.model),
                           text="%s search" % search_name)
             self.search_tabs[search_type] = self.tabs.index("end") - 1

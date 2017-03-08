@@ -1,8 +1,9 @@
 import tkinter as tk
 from tkinter import ttk
 
-from ..observable import eventsource
+from ..exceptions import ModelError
 from ..widgets import EditableMultiColumnList
+from .errorview import ErrorView
 from .tableview import TableView
 
 
@@ -15,26 +16,33 @@ class EditableTableView(TableView, EditableMultiColumnList):
         self._tree.bind("<3>", self.__on_right_click, add="+")
         self.cell_edited.add_observer(self.__on_changed)
 
-        self.created.add_observer(print)
+        self.fill()
 
-    @eventsource
-    def update(key, changes):
-        pass
-
-    @eventsource
-    def delete(keys):
-        pass
-
-    @eventsource
-    def created(new_item):
-        pass
+    def _get_key(self, item):
+        return {k: self._tree.set(item, k) for k in self.table.keyfields}
 
     def fill(self):
         self._destroy_popup_menu()
         super().fill()
 
-    def _get_key(self, item):
-        return {k: self._tree.set(item, k) for k in self.m.key}
+    def update(self, key, changes):
+        try:
+            self.table.set(key, **changes)
+        except ModelError as e:
+            ErrorView(e)
+
+    def create(self, new_item):
+        try:
+            self.table.append(new_item)
+        except ModelError as e:
+            ErrorView(e)
+
+    def delete(self, keys):
+        try:
+            for k in keys:
+                self.table.delete(k)
+        except ModelError as e:
+            ErrorView(e)
 
     def _create_popup_menu(self):
         popup = tk.Menu(self._tree, tearoff=False)
@@ -58,7 +66,7 @@ class EditableTableView(TableView, EditableMultiColumnList):
 
             ttk.Button(win,
                        text="Insert",
-                       command=lambda: self.created(
+                       command=lambda: self.create(
                            {c: e.get() for c, e in entries.items()})
                        ).grid(in_=win_frame, sticky="e")
 

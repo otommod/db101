@@ -4,11 +4,12 @@ from .errorview import ErrorView
 from .appview import AppView
 from .querysubview import QuerySubView
 
-from .searchview import (DrugSearchView,
-                         DoctorSearchView,
-                         PatientSearchView,
-                         BigPharmaSearchView,
-                         PrescriptionSearchView,
+from .searchview import (DrugSearchForm,
+                         DoctorSearchForm,
+                         PatientSearchForm,
+                         # BigPharmaSearchForm,
+                         PrescriptionSearchForm,
+                         SearchView,
                          MultiSearchView)
 
 from .mainview import MainView
