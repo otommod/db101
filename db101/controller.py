@@ -1,4 +1,5 @@
-from .views import ErrorView, TableView, QuerySubView
+import tkinter as tk
+from .views import ErrorView, TableView, QuerySubView, MainView
 from .exceptions import ModelError
 
 
@@ -80,3 +81,18 @@ class AppController:
 
     def on_tables(self):
         pass
+
+
+class MainController:
+    def __init__(self, model):
+        self.model = model
+
+        self.root = tk.Tk()
+        self.root.title("BaseMasteRX 3000")
+        self.root.rowconfigure(0, weight=1)
+        self.root.columnconfigure(0, weight=1)
+
+        self.view = MainView(self.root, model)
+        self.view.grid(sticky="nsew")
+
+        self.root.mainloop()

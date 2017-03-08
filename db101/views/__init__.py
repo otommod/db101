@@ -4,3 +4,4 @@ from .errorview import ErrorView
 from .searchview import SearchView
 from .appview import AppView
 from .querysubview import QuerySubView
+from .mainview import MainView
