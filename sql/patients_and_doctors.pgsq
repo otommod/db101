@@ -1,0 +1,4 @@
+SELECT Patient.name,
+       Doctor.*
+FROM Doctor
+     LEFT JOIN Patient ON Doctor.id = Patient.doctor_id;
