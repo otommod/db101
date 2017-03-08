@@ -7,10 +7,6 @@ class Pharmacy(Model):
             "our_pharmacy": pharmacy_id,
         })
 
-    # @eventsource
-    # def changed():
-    #     pass
-
 
 class DrugsOnSale(Pharmacy.Query):
     ARGUMENTS = {
@@ -18,12 +14,35 @@ class DrugsOnSale(Pharmacy.Query):
     }
     RETURNS = ("name", "maker", "formula", "price")
 
-
 class CountDrugsOnSale(Pharmacy.Query):
     ARGUMENTS = {
         "our_pharmacy": int
     }
-    RETURNS = ("count")
+    RETURNS = ("count",)
+
+class PartneredBigpharmas(Pharmacy.Query):
+    ARGUMENTS = {
+        "our_pharmacy": int
+    }
+    RETURNS = ("name", "phone")
+
+class NotPartneredBigpharmas(Pharmacy.Query):
+    ARGUMENTS = {
+        "our_pharmacy": int
+    }
+    RETURNS = ("name", "phone")
+
+class PotentialDrugs(Pharmacy.Query):
+    ARGUMENTS = {
+        "our_pharmacy": int
+    }
+    RETURNS = ("name",)
+
+class DrugsFromOtherPharmas(Pharmacy.Query):
+    ARGUMENTS = {
+        "our_pharmacy": int
+    }
+    RETURNS = ("name",)
 
 
 class PatientSearch(Pharmacy.Query):
@@ -38,7 +57,6 @@ class PatientSearch(Pharmacy.Query):
     }
     RETURNS = ("name", "age", "address", "doctor")
 
-
 class DoctorSearch(Pharmacy.Query):
     ARGUMENTS = {
         "our_pharmacy": int,
@@ -49,3 +67,24 @@ class DoctorSearch(Pharmacy.Query):
         "drug": str
     }
     RETURNS = ("name", "specialty", "exp")
+
+class DrugSearch(Pharmacy.Query):
+    ARGUMENTS = {
+        "our_pharmacy": int,
+        "name": str,
+        "formula": str,
+        "min_price": int,
+        "max_price": int,
+        "drug": str
+    }
+    RETURNS = ("name", "formula", "bigpharma_id")
+
+class PrescriptionSearch(Pharmacy.Query):
+    ARGUMENTS = {
+        "our_pharmacy": int,
+        "patient": str,
+        "doctor": str,
+        "drug": str,
+        "date": str
+    }
+    RETURNS = ("name", "doctor", "drug", "date", "dosage")

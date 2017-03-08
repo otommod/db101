@@ -18,3 +18,9 @@
       Contracts and Drugs that reference that BigPharma, directly or
       indirectly are also deleted.
     + one more to go
+
+## TODO
+
+* don't bigpharma_id from drug_search
+* prescription search
+* drugs_for_patient

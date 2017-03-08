@@ -6,10 +6,11 @@ from ...helpers import readfile, RegisteringMetaclass
 class SQLQueryMetaclass(RegisteringMetaclass):
     def __init__(cls, name, bases, attrs):
         if hasattr(cls, "QUERY_FILE"):
-            basedir = getattr(cls, "BASE_DIR", ".")
-            suffix = getattr(cls, "SUFFIX", "")
-            cls.QUERY = readfile(
-                os.path.join(basedir, cls.QUERY_FILE + suffix))
+            # basedir = getattr(cls, "BASE_DIR", ".")
+            # suffix = getattr(cls, "SUFFIX", "")
+            # cls.QUERY = readfile(
+            #     os.path.join(basedir, cls.QUERY_FILE + suffix))
+            cls.QUERY = readfile(cls.QUERY_FILE)
 
         super().__init__(name, bases, attrs)
 
@@ -45,27 +46,45 @@ class SQLQuery(metaclass=SQLQueryMetaclass):
         return params
 
 
-class CountDrugsOnSale(SQLQuery):
-    QUERY_FILE = "pharmacy/count_drugs_on_sale"
+class SQLPharmacyQueries(SQLQuery):
+    BASE_DIR = "sql/pharmacy"
+
+class CountDrugsOnSale(SQLPharmacyQueries):
+    QUERY_FILE = "sql/pharmacy/count_drugs_on_sale.pgsql"
+
+class DrugsOnSale(SQLPharmacyQueries):
+    QUERY_FILE = "sql/pharmacy/drugs_on_sale.pgsql"
+
+class PartneredBigpharmas(SQLPharmacyQueries):
+    QUERY_FILE = "sql/pharmacy/partnered_bigpharmas.pgsql"
+
+class NotPartneredBigpharmas(SQLPharmacyQueries):
+    QUERY_FILE = "sql/pharmacy/not_partnered_bigpharmas.pgsql"
+
+class PotentialDrugs(SQLPharmacyQueries):
+    QUERY_FILE = "sql/pharmacy/potential_drugs.pgsql"
+
+class DrugsFromOtherPharmas(SQLPharmacyQueries):
+    QUERY_FILE = "sql/pharmacy/drugs_from_other_pharmas.pgsql"
 
 
-class DrugsOnSale(SQLQuery):
-    QUERY_FILE = "pharmacy/drugs_on_sale"
-
-
-class SQLSearchQuery(SQLQuery):
+class SQLSearchQuery(SQLPharmacyQueries):
     def prepare(self, given_params):
         params = super().prepare(given_params)
         params.update({"include_" + k: (k in given_params)
                        for k in self.ARGUMENTS})
         return params
 
-
-class PatientSearchMapper(SQLSearchQuery):
-    QUERY_FILE = "patient_search"
+class PatientSearch(SQLSearchQuery):
+    QUERY_FILE = "sql/pharmacy/patient_search.pgsql"
     ESCAPE = {"name", "doctor", "address", "drug"}
 
-
-class DoctorSearchMapper(SQLSearchQuery):
-    QUERY_FILE = "doctor_search"
+class DoctorSearch(SQLSearchQuery):
+    QUERY_FILE = "sql/pharmacy/doctor_search.pgsql"
     ESCAPE = {"name", "specialty", "patient", "drug"}
+
+class DrugSearch(SQLSearchQuery):
+    QUERY_FILE = "sql/pharmacy/drug_search.pgsql"
+
+class PrescriptionSearch(SQLSearchQuery):
+    QUERY_FILE = "sql/pharmacy/prescription_search.pgsql"

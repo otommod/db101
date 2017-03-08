@@ -1,3 +1,4 @@
+# from .table import Table
 from .general import General
 from .pharmacy import Pharmacy
-from .tablemodel import TableModel
+from .namedtable import NamedTable

@@ -57,7 +57,8 @@ class DrugForm(ttk.Frame):
         B1.grid(row=4, column=5)
 
     def get(self):
-        return {k: getattr(self, k).get() for k in self.ARGS}
+        results = {k: getattr(self, k).get() for k in self.ARGS}
+        results = {k: v for k, v in results.items() if v}
 
     @eventsource
     def do_search(params):
@@ -95,7 +96,8 @@ class DoctorForm(ttk.Frame):
         B1.grid(row=5, column=3)
 
     def get(self):
-        return {k: getattr(self, k).get() for k in self.ARGS}
+        results = {k: getattr(self, k).get() for k in self.ARGS}
+        results = {k: v for k, v in results.items() if v}
 
     @eventsource
     def do_search(params):
@@ -139,7 +141,8 @@ class PatientForm(ttk.Frame):
         B1.grid(row=5, column=5)
 
     def get(self):
-        return {k: getattr(self, k).get() for k in self.ARGS}
+        results = {k: getattr(self, k).get() for k in self.ARGS}
+        results = {k: v for k, v in results.items() if v}
 
     @eventsource
     def do_search(params):
@@ -177,7 +180,8 @@ class BigPharmaForm(ttk.Frame):
         B1.grid(row=5, column=3)
 
     def get(self):
-        return {k: getattr(self, k).get() for k in self.ARGS}
+        results = {k: getattr(self, k).get() for k in self.ARGS}
+        results = {k: v for k, v in results.items() if v}
 
     @eventsource
     def do_search(params):
@@ -211,7 +215,8 @@ class PrescriptionForm(ttk.Frame):
         B1.grid(row=4, column=3)
 
     def get(self):
-        return {k: getattr(self, k).get() for k in self.ARGS}
+        results = {k: getattr(self, k).get() for k in self.ARGS}
+        results = {k: v for k, v in results.items() if v}
 
     @eventsource
     def do_search(params):

@@ -1,5 +1,5 @@
 from .views import ErrorView, TableView, QuerySubView
-from .exceptions import InvalidOperationError
+from .exceptions import ModelError
 
 
 class TableController:
@@ -10,25 +10,31 @@ class TableController:
 
         self.v.update.add_observer(self.on_update)
         self.v.delete.add_observer(self.on_delete)
+        self.v.created.add_observer(self.on_insert)
 
     def on_update(self, key, changes):
         try:
             self.m.set(key, **changes)
-        except InvalidOperationError as e:
+        except ModelError as e:
             ErrorView(e)
 
     def on_delete(self, keys):
         try:
             for k in keys:
                 self.m.delete(k)
-        except InvalidOperationError as e:
+        except ModelError as e:
+            ErrorView(e)
+
+    def on_insert(self, new_item):
+        try:
+            self.m.append(new_item)
+        except ModelError as e:
             ErrorView(e)
 
 
 class SearchController:
-    def __init__(self, pharmacy_id, model, view):
-        self.pharmacy_id = pharmacy_id
-        self.m = model
+    def __init__(self, pharmacy, view):
+        self.pharmacy = pharmacy
         self.search_form = view
         self.search_results = None
 
@@ -46,14 +52,12 @@ class SearchController:
 
     def on_search(self, search_type, params):
         self._clear_results()
-        print("SearchController.on_search", search_type, params)
 
-        model = getattr(self.m, search_type)
-        model.bake(**{"our_pharmacy": self.pharmacy_id})
-        model.bake(**params)
+        model = getattr(self.pharmacy, search_type + "_search")(params)
+        print(model)
 
-        self.search_results = TableView(self.search_form, model)
-        self.search_results.grid(row=2, column=0, columnspan=5)
+        self.results_view = TableView(self.search_form, model)
+        self.results_view.grid(row=2, column=0, columnspan=5)
 
 
 class AppController:
@@ -66,8 +70,10 @@ class AppController:
         self.view.tables_please.add_observer(self.on_tables)
 
     def on_query_selection(self, query):
-        query_view = QuerySubView.from_query(query, self.view, self.pharmacy)
-        self.view.show_query(query_view)
+        QueryView = QuerySubView.lookup(query)
+
+        query_view = QueryView(self.view, self.pharmacy)
+        self.view.add_subview(query_view)
 
     def on_search(self):
         pass

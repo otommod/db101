@@ -1,5 +1,5 @@
 import tkinter as tk
-# from tkinter import ttk
+from tkinter import ttk
 
 from ..observable import eventsource
 from ..widgets import EditableMultiColumnList
@@ -15,8 +15,7 @@ class EditableTableView(TableView, EditableMultiColumnList):
         self._tree.bind("<3>", self.on_right_click, add="+")
         self.cell_edited.add_observer(self.on_changed)
 
-        # debug
-        self.update.add_observer(lambda *a: print("EditableTableView", a))
+        self.created.add_observer(print)
 
     @eventsource
     def update(key, changes):
@@ -26,22 +25,42 @@ class EditableTableView(TableView, EditableMultiColumnList):
     def delete(keys):
         pass
 
+    @eventsource
+    def created(new_item):
+        pass
+
     def fill(self):
         self._destroy_popup_menu()
         super().fill()
 
     def _get_key(self, item):
-        return {k: self.tree.set(item, k) for k in self.m.key}
+        return {k: self._tree.set(item, k) for k in self.m.key}
 
     def _create_popup_menu(self):
-        popup = tk.Menu(self.tree, tearoff=False)
-        selection = self.tree._tree.selection()
+        popup = tk.Menu(self._tree, tearoff=False)
+        selection = self._tree.selection()
 
         def delete():
             self.delete(self._get_key(item) for item in selection)
 
         def insert():
-            pass
+            win = tk.Toplevel()
+            win.title("Inserting...")
+            win_frame = ttk.Frame(win)
+            win_frame.grid()
+
+            entries = {}
+            for i, c in enumerate(self.columns):
+                ttk.Label(win, text=c).grid(in_=win_frame, row=i, sticky="e")
+                entry = ttk.Entry(win)
+                entry.grid(in_=win_frame, row=i, column=1, sticky="w")
+                entries[c] = entry
+
+            ttk.Button(win,
+                       text="Insert",
+                       command=lambda: self.created(
+                           {c: e.get() for c, e in entries.items()})
+                       ).grid(in_=win_frame, sticky="e")
 
         if not selection:
             popup.add_command(label="Insert", command=insert)
@@ -70,6 +89,6 @@ class EditableTableView(TableView, EditableMultiColumnList):
         self._place_popup_menu(event.x_root, event.y_root)
 
     def on_changed(self, row, col, new_value):
-        colname = self.tree._tree.heading(col, "text")
+        colname = self._tree.heading(col, "text")
         self.update(self._get_key(row),
                     {colname: new_value})

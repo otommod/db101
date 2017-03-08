@@ -17,13 +17,13 @@ WHERE Patient.doctor_id = Doctor.id
     ELSE true
   END
   AND CASE
-    WHEN %(include_maxage)s
-    THEN age < %(maxage)s
+    WHEN %(include_age_max)s
+    THEN age < %(age_max)s
     ELSE true
   END
   AND CASE
-    WHEN %(include_minage)s
-    THEN age > %(minage)s
+    WHEN %(include_age_min)s
+    THEN age > %(age_min)s
     ELSE true
   END
   AND CASE

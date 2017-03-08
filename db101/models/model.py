@@ -1,5 +1,6 @@
 from ..helpers import camelcase_to_snakecase, RegisteringMetaclass
 from ..observable import eventsource
+from .table import Table
 
 
 class ModelMetaclass(type):
@@ -12,6 +13,16 @@ class ModelMetaclass(type):
 
         super().__init__(name, bases, attrs)
 
+    def __call__(cls, *args, **kwargs):
+        print("ModelMetaclass.__call__(", args, kwargs, ")")
+
+        self = type.__call__(cls, *args, **kwargs)
+        for n, q in self.Query._registry.items():
+            setattr(self, camelcase_to_snakecase(n), q(n, self))
+
+        print("Model.Query._registry", self.Query._registry.keys())
+        return self
+
 
 class Model(metaclass=ModelMetaclass):
     class Query(metaclass=RegisteringMetaclass):
@@ -22,18 +33,13 @@ class Model(metaclass=ModelMetaclass):
             self.model = model
 
         def __call__(self, params=None):
-            return self.model._execute(self, params)
+            print(self.RETURNS)
+            return Table(self.RETURNS,
+                         self.model._execute(self, params))
 
     def __init__(self, mapper, baked_params=None):
         self._mapper = mapper
         self._baked_params = frozenset((baked_params or {}).items())
-
-        for name, cls in self.Query._registry.items():
-            setattr(self,
-                    camelcase_to_snakecase(name),
-                    cls(name, self))
-        self._queries = tuple(self.Query._registry.keys())
-        print("Model._queries", self._queries)
 
     def _execute(self, query, params=None):
         all_params = {}
@@ -51,7 +57,3 @@ class Model(metaclass=ModelMetaclass):
         #         all_params, queryname)
 
         return self._mapper.execute(query, all_params)
-
-    @eventsource
-    def changed():
-        pass
