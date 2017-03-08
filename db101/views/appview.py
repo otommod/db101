@@ -6,6 +6,7 @@ from ..observable import eventsource
 
 QUERIES = [
     "How many drugs do we sell?",
+    "What drugs could we sell?",
 ]
 
 
