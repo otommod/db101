@@ -67,7 +67,7 @@ class Window(Frame):
 
 root = Tk()
 root.geometry("683x384")
-background_image= PhotoImage(file = "/home/vaimaster/db101/basemasterx3000.png")
+background_image= PhotoImage(file = "./basemasterx3000.png")
 background_label = Label(root, image=background_image, bg='black')
 background_label.place(x=0, y=0, relwidth=1, relheight=1)
 
