@@ -1,5 +1,5 @@
-from .views import ErrorView, TableView
-from .models import InvalidOperationError
+from .views import ErrorView, TableView, QuerySubView
+from .exceptions import InvalidOperationError
 
 
 class TableController:
@@ -54,3 +54,23 @@ class SearchController:
 
         self.search_results = TableView(self.search_form, model)
         self.search_results.grid(row=2, column=0, columnspan=5)
+
+
+class AppController:
+    def __init__(self, view, pharmacy):
+        self.view = view
+        self.pharmacy = pharmacy
+
+        self.view.query_selected.add_observer(self.on_query_selection)
+        self.view.search_request.add_observer(self.on_search)
+        self.view.tables_please.add_observer(self.on_tables)
+
+    def on_query_selection(self, query):
+        query_view = QuerySubView.from_query(query, self.view, self.pharmacy)
+        self.view.show_query(query_view)
+
+    def on_search(self):
+        pass
+
+    def on_tables(self):
+        pass
