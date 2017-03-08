@@ -26,9 +26,8 @@ class TableController:
 
 
 class SearchController:
-    def __init__(self, pharmacy_id, model, view):
-        self.pharmacy_id = pharmacy_id
-        self.m = model
+    def __init__(self, pharmacy, view):
+        self.pharmacy = pharmacy
         self.search_form = view
         self.search_results = None
 
@@ -46,10 +45,8 @@ class SearchController:
 
     def on_search(self, search_type, params):
         self._clear_results()
-        print("SearchController.on_search", search_type, params)
 
         model = getattr(self.m, search_type)
-        model.bake(**{"our_pharmacy": self.pharmacy_id})
         model.bake(**params)
 
         self.search_results = TableView(self.search_form, model)
@@ -66,7 +63,8 @@ class AppController:
         self.view.tables_please.add_observer(self.on_tables)
 
     def on_query_selection(self, query):
-        query_view = QuerySubView.from_query(query, self.view, self.pharmacy)
+        QueryView = QuerySubView.lookup(query)
+        query_view = QueryView(self.view, self.pharmacy)
         self.view.show_query(query_view)
 
     def on_search(self):

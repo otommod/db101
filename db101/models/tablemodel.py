@@ -6,19 +6,60 @@ from ..schema import SCHEMA
 from ..exceptions import InvalidKeyError, InvalidOperationError
 
 
-class Table(namedtuple("Table", "name key fields db")):
-    def __new__(cls, name, key, fields, db):
-        key = key if isinstance(key, (list, tuple)) else (key,)
-        return super().__new__(cls, name, key, fields, db)
+class Table:
+    mapper_factory = None
+
+    @classmethod
+    def loopup(cls, name):
+        assert cls.mapper_factory
+
+        schema = SCHEMA[name]
+        return cls(name,
+                   schema["key"],
+                   schema["fields"],
+                   cls.mapper_factory(name, schema))
+
+    def __init__(self, mapper, name, keyfields, fields):
+        self._mapper = mapper
+
+        self.name = name
+        self.fields = fields
+        self.keyfields = keyfields.copy()
+        if not isinstance(keyfields, (tuple, list)):
+            self.keyfields = (keyfields,)
 
     @eventsource
     def changed():
         pass
 
-    def __getattr__(self, attr):
-        if attr in ("get", "set", "append", "delete"):
-            return partial(getattr(self.db, attr), self.name)
-        raise AttributeError(attr)
+    def get(self, *fields, order_by="", descending=False):
+        if not fields:
+            fields = self.fields
+        return self._mapper.get(fields,
+                                order_by=order_by,
+                                descending=descending)
+
+    def set(self, key, **updates):
+        if not key:
+            # Such a query could be made to mean "set every row to this value".
+            # While it may be a legitimate thing to do, we don't support it.
+            raise InvalidKeyError("No key given")
+        if not updates:
+            raise InvalidOperationError("You must update something")
+
+        self._mapper.set(key, updates)
+        self.changed()
+
+    def append(self, item):
+        if isinstance(item, (list, tuple)):
+            item = dict(zip(t.fields, item))
+
+        self._mapper.append(item)
+        self.changed()
+
+    def delete(self, key):
+        self._mapper.delete(key)
+        self.changed()
 
 
 class TableModel:

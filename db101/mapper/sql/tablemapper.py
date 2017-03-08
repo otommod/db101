@@ -1,8 +1,9 @@
-from .helpers import MapperFactory
+from .driver import PostgresDriver
+from .helpers import namedtuple_wrapper
 from .querybuilder import QueryBuilder
 
 
-class TableMapper:
+class SQLTable:
     @classmethod
     def _prefix_dict(cls, dictionary, prefix):
         return {prefix + f: v for f, v in dictionary.items()}
@@ -36,6 +37,14 @@ class TableMapper:
         return self.factory.execute(q, self._prefix_dict(key, "key_"))
 
 
-class TableMapperFactory(MapperFactory):
+class TableMapper:
+    def __init__(self, conn, result_wrapper=namedtuple_wrapper):
+        self.conn = conn
+        self.driver = PostgresDriver(conn)
+        self.result_wrapper = result_wrapper
+
+    def execute(self, query, params=None):
+        return self.driver.execute(query, params)
+
     def __call__(self, table):
-        return TableMapper(self, table)
+        return SQLTable(self, table)

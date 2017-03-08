@@ -1,2 +1,2 @@
-from .tablemapper import TableMapperFactory
 from .querymapper import QueryMapper
+from .tablemapper import TableMapper

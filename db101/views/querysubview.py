@@ -3,10 +3,10 @@ from tkinter import ttk
 
 class QuerySubView(ttk.Frame):
     @classmethod
-    def from_query(cls, query, *args, **kwargs):
+    def lookup(cls, query, *args, **kwargs):
         return {
             "How many drugs do we sell?": HowManyDrugsWeSell,
-        }[query](*args, **kwargs)
+        }[query]
 
     def __init__(self, parent, model):
         super().__init__(parent)
