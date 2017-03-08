@@ -69,6 +69,6 @@ CREATE OR REPLACE FUNCTION has_contract_for_drug(integer, integer) RETURNS bool 
             Contract
             JOIN Drug ON Contract.bigpharma_id = Drug.bigpharma_id
         WHERE Contract.pharmacy_id = $1 AND Drug.id = $2);
-$$ LANGUAGE 'SQL';
+$$ LANGUAGE 'sql';
 
 ALTER TABLE Sell ADD CONSTRAINT has_contract CHECK (has_contract_for_drug(pharmacy_id, drug_id));
