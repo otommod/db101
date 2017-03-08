@@ -8,9 +8,9 @@ class SQLTable:
     def _prefix_dict(cls, dictionary, prefix):
         return {prefix + f: v for f, v in dictionary.items()}
 
-    def __init__(self, factory, tabledef):
+    def __init__(self, factory, name, keyfields):
         self._factory = factory
-        self.builder = QueryBuilder(tabledef.name, tabledef.key)
+        self.builder = QueryBuilder(name, keyfields)
 
     def _wrapper(self, fields):
         return self._factory.result_wrapper(fields)
@@ -51,5 +51,5 @@ class TableMapper:
     def execute(self, query, params=None):
         return self.driver.execute(query, params)
 
-    def __call__(self, table):
-        return SQLTable(self, table)
+    def __call__(self, *args):
+        return SQLTable(self, *args)

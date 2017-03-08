@@ -18,14 +18,15 @@ class NamedTable(Table):
         return cls(name,
                    schema["key"],
                    schema["fields"],
-                   cls.mapper_factory(name, schema))
+                   cls.mapper_factory(name, schema["key"]))
 
     def __init__(self, name, keyfields, fields, mapper):
         super().__init__(fields, mapper)
 
         self.name = name
-        self.keyfields = keyfields.copy()
-        if not isinstance(keyfields, (tuple, list)):
+        if isinstance(keyfields, (tuple, list)):
+            self.keyfields = keyfields.copy()
+        else:
             self.keyfields = (keyfields,)
 
     @eventsource
