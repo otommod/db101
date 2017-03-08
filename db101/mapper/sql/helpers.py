@@ -3,11 +3,6 @@ from collections import namedtuple
 from .driver import PostgresDriver
 
 
-def read_from(filename):
-    with open(filename) as f:
-        return f.read()
-
-
 def namedtuple_wrapper(fields):
     assert all(f.isidentifier() for f in fields)
     return namedtuple("row", fields)

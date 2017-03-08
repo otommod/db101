@@ -1,27 +1,16 @@
 import os.path
 
+from ...helpers import RegisteringMetaclass
 from .helpers import read_from
 
 
-class SQLQueryMetaclass(type):
-    def __new__(meta, name, bases, attrs, **kwds):
-        # assert "ARGS" in attrs, name
-        # assert "RETURNS" in attrs, name
-
-        return super().__new__(meta, name, bases, attrs)
-
+class SQLQueryMetaclass(RegisteringMetaclass):
     def __init__(cls, name, bases, attrs):
-        if not hasattr(cls, "ALL"):
-            cls.ALL = {}
-
         if hasattr(cls, "QUERY_FILE"):
             basedir = getattr(cls, "BASE_DIR", ".")
             suffix = getattr(cls, "SUFFIX", "")
             cls.QUERY = read_from(
                 os.path.join(basedir, cls.QUERY_FILE + suffix))
-
-        if hasattr(cls, "QUERY"):
-            cls.ALL[name] = cls
 
         super().__init__(name, bases, attrs)
 

@@ -1,6 +1,7 @@
 from .driver import PostgresDriver
 from .helpers import namedtuple_wrapper
-from .sqlquery import SQLQuery
+# from .sqlquery import SQLQuery
+from .queries import SQLQuery
 
 
 class QueryMapper:
@@ -10,7 +11,8 @@ class QueryMapper:
         self.result_wrapper = result_wrapper
 
     def execute(self, modelquery, params=None):
-        query = SQLQuery.ALL[type(modelquery).__name__]
+        print(SQLQuery._registry)
+        query = SQLQuery._registry[type(modelquery).__name__]
 
         # FIXME
         query_obj = query()

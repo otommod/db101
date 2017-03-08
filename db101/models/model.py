@@ -1,37 +1,20 @@
-from ..helpers import camelcase_to_snakecase
+from ..helpers import camelcase_to_snakecase, RegisteringMetaclass
 from ..observable import eventsource
 
 
 class ModelMetaclass(type):
-    def __new__(meta, name, bases, attrs):
-        print("ModelMetaclass.__new__(", name, bases, attrs, ")")
-        return super().__new__(meta, name, bases, attrs)
-
     def __init__(cls, name, bases, attrs):
         print("ModelMetaclass.__init__(", cls, name, bases, attrs, ")")
 
-        cls.Query = ModelQueryMetaclass(
+        cls.Query = RegisteringMetaclass(
             "Query", (cls.Query,), {})
         cls.Query._registry = {}
 
         super().__init__(name, bases, attrs)
 
 
-class ModelQueryMetaclass(type):
-    def __new__(meta, name, bases, attrs):
-        print("ModelQueryMetaclass.__new__(", name, bases, attrs, ")")
-        return super().__new__(meta, name, bases, attrs)
-
-    def __init__(cls, name, bases, attrs):
-        print("ModelQueryMetaclass.__init__(", cls, name, bases, attrs, ")")
-
-        cls._registry[name] = cls
-
-        super().__init__(name, bases, attrs)
-
-
 class Model(metaclass=ModelMetaclass):
-    class Query(metaclass=ModelQueryMetaclass):
+    class Query(metaclass=RegisteringMetaclass):
         _registry = {}
 
         def __init__(self, name, model):
