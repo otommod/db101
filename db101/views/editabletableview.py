@@ -11,9 +11,9 @@ class EditableTableView(TableView, EditableMultiColumnList):
         self.popup = None
         super().__init__(parent, table)
 
-        self._tree.bind("<1>", self.on_click, add="+")
-        self._tree.bind("<3>", self.on_right_click, add="+")
-        self.cell_edited.add_observer(self.on_changed)
+        self._tree.bind("<1>", self.__on_click, add="+")
+        self._tree.bind("<3>", self.__on_right_click, add="+")
+        self.cell_edited.add_observer(self.__on_changed)
 
         self.created.add_observer(print)
 
@@ -80,15 +80,15 @@ class EditableTableView(TableView, EditableMultiColumnList):
             self.popup.destroy()
             self.popup = None
 
-    def on_click(self, event):
+    def __on_click(self, event):
         self._destroy_popup_menu()
 
-    def on_right_click(self, event):
+    def __on_right_click(self, event):
         self._destroy_popup_menu()
         self.popup = self._create_popup_menu()
         self._place_popup_menu(event.x_root, event.y_root)
 
-    def on_changed(self, row, col, new_value):
+    def __on_changed(self, row, col, new_value):
         colname = self._tree.heading(col, "text")
         self.update(self._get_key(row),
                     {colname: new_value})

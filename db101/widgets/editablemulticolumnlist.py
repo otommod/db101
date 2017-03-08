@@ -15,8 +15,8 @@ class EditableMultiColumnList(MultiColumnList):
         self.configure(style="Editable.TFrame")
 
         self.cell_entry = None
-        self._tree.bind("<1>", lambda *ignore: self.cancel_edit())
-        self._tree.bind("<Double-1>", self.on_double_click)
+        self._tree.bind("<1>", self.__on_click)
+        self._tree.bind("<Double-1>", self.__on_double_click)
 
     @eventsource
     def cell_edited(row, col, new_value):
@@ -62,6 +62,9 @@ class EditableMultiColumnList(MultiColumnList):
         x, y, width, height = bbox
         self.cell_entry.place(x=x, y=y, width=width, height=height)
 
-    def on_double_click(self, event):
+    def __on_click(self, event):
+        self.cancel_edit()
+
+    def __on_double_click(self, event):
         self.edit_cell(self._tree.identify_row(event.y),
                        self._tree.identify_column(event.x))

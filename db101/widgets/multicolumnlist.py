@@ -40,7 +40,7 @@ class MultiColumnList(ttk.Frame):
         for c in self.winfo_children():
             c.grid_configure(padx=2, pady=2)
 
-        self._tree.bind("<3>", self.on_right_click)
+        self._tree.bind("<3>", self.__on_right_click)
 
     @eventsource
     def view_changed():
@@ -93,7 +93,7 @@ class MultiColumnList(ttk.Frame):
             self._tree.insert("", "end", values=i)
         self._resize_columns()
 
-    def on_right_click(self, event):
+    def __on_right_click(self, event):
         selection = self._tree.selection()
         clicked_on = self._tree.identify_row(event.y)
         print("selected", selection)
