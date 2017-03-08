@@ -28,5 +28,5 @@ class HowManyDrugsWeSell(QuerySubView):
         self.render()
 
     def render(self):
-        number = self.model.drugs_on_sale()
+        number = self.model.count_drugs_on_sale()
         self.label.configure(text=str(number))
