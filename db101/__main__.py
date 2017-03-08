@@ -20,11 +20,11 @@ s.configure("Main.TFrame", background="green")
 mainframe.configure(style="Main.TFrame")
 
 conn = psycopg2.connect(dbname="db101")
-table_mapper = db101.mapper.sql.TableMapper(conn)
-query_mapper = db101.mapper.sql.QueryMapper(conn)
-pharmacy = db101.models.Pharmacy(1, query_mapper)
+sql_mapper = db101.mapper.sql.SQLMapper(conn)
+db101.models.NamedTable.mapper_factory = sql_mapper
 
-db101.models.NamedTable.mapper_factory = table_mapper
+pharmacy = db101.models.Pharmacy(1, sql_mapper)
+
 table_m = db101.models.NamedTable.loopup("patient")
 table_v = db101.views.EditableTableView(mainframe, table_m)
 table_c = db101.controller.TableController(table_m, table_v)

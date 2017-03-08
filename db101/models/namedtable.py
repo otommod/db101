@@ -15,13 +15,13 @@ class NamedTable(Table):
         assert cls.mapper_factory
 
         schema = SCHEMA[name]
-        return cls(name,
-                   schema["key"],
-                   schema["fields"],
-                   cls.mapper_factory(name, schema["key"]))
+        self = cls(name, schema["key"], schema["fields"])
+        # FIXME: big hack but I can't be bothered right now
+        self._mapper = cls.mapper_factory(self, name, schema["key"])
+        return self
 
-    def __init__(self, name, keyfields, fields, mapper):
-        super().__init__(fields, mapper)
+    def __init__(self, name, keyfields, fields):
+        super().__init__(fields, "")
 
         self.name = name
         if isinstance(keyfields, (tuple, list)):

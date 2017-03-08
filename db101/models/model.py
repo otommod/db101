@@ -33,9 +33,18 @@ class Model(metaclass=ModelMetaclass):
             self.model = model
 
         def __call__(self, params=None):
-            print(self.RETURNS)
             return Table(self.RETURNS,
                          self.model._execute(self, params))
+
+        def validate(cls, named_params):
+            for p, v in named_params.items():
+                if p not in cls.ARGUMENTS:
+                    return False
+                try:
+                    cls.ARGUMENTS[p](v)
+                    return True
+                except ValueError:
+                    return False
 
     def __init__(self, mapper, baked_params=None):
         self._mapper = mapper
@@ -56,4 +65,4 @@ class Model(metaclass=ModelMetaclass):
         #         "Invalid arguments %(args)s for query %(query)s",
         #         all_params, queryname)
 
-        return self._mapper.execute(query, all_params)
+        return self._mapper(query, all_params)

@@ -21,7 +21,6 @@ class QueryMapper:
         self.result_wrapper = result_wrapper
 
     def execute(self, modelquery, params=None):
-        print("QueryMapper.execute", SQLQuery._registry)
         query = SQLQuery._registry[type(modelquery).__name__]
 
         # FIXME
