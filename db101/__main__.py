@@ -10,7 +10,7 @@ sql_mapper = db101.mapper.sql.SQLMapper(conn)
 db101.models.NamedTable.mapper_factory = sql_mapper
 
 pharmacy = db101.models.Pharmacy(1, sql_mapper)
-patients = db101.models.NamedTable.loopup("patient")
+patients = db101.models.NamedTable.lookup("patient")
 
 main_controller = db101.controller.MainController(pharmacy)
 

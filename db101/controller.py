@@ -1,6 +1,9 @@
 import tkinter as tk
-from .views import ErrorView, TableView, QuerySubView, MainView
+
+from . import models
 from .exceptions import ModelError
+from .views import (EditableTableView, ErrorView, MainView, QuerySubView,
+                    TableView)
 
 
 class TableController:
@@ -96,4 +99,14 @@ class MainController:
         self.root.geometry("683x384")
         self.view.grid(sticky="nsew")
 
+        self.view.table_request.add_observer(self.__on_table_request)
+
         self.root.mainloop()
+
+    def __on_table_request(self, table):
+        table_model = models.NamedTable.lookup(table)
+        table_view = EditableTableView(self.view, table_model)
+
+        table_controller = TableController(table_model, table_view)
+
+        self.view.add_table(table, table_view)

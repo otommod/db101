@@ -2,8 +2,8 @@ import tkinter as tk
 from tkinter import ttk
 from functools import partial
 
-from .querysubview import QuerySubView
-from .searchview import MultiSearchView
+from . import MultiSearchView, QuerySubView
+from ..observable import eventsource
 
 
 def nop(*a, **kw):
@@ -37,42 +37,24 @@ class MainView(ttk.Frame):
         self.bg_label = ttk.Label(self, style="Main.TFrame")
         self.bg_label.grid(sticky="nsew")
 
-        menudesc = {
-            "Find": {
-                "__command__": self.show_query,
-                "How many drugs do we sell?": "",
-                "Oldest People Drugs": "",
-                "Drugs Capacity": "",
-                "Last telephone calls": "",
-                "Our Drug Companies": "",
-                "Other Drug Companies": "",
-                "New Drugs From Partners": "",
-                "New Drugs From Other Companies": "",
-                "Drugs For A Patient": "",
-                "Number Of Contracts Order By Start Date": "",
-                "Number Of Contracts Order By End Date": "",
-                "Doctors With Average Patients Over 50": "",
-            },
-
-            "Search for": {
-                "__command__": self.show_search,
-                "Doctor": "",
-                "Patient": "",
-                "Drug": "",
-                "Pharmacies": "",
-                "Prescription": "",
-            },
-
-            "View table": {
-                "Patients": "",
-                "Doctors": "",
-                "Drugs": "",
-                "Pharmacies": "",
-                "Prescriptions": "",
-            }
-        }
-
         menubar = tk.Menu(self.master)
+
+        query_menu = tk.Menu(menubar)
+        for q in ["How many drugs do we sell?",
+                  "Oldest People Drugs",
+                  "Drugs Capacity",
+                  "Last telephone calls",
+                  "Our Drug Companies",
+                  "Other Drug Companies",
+                  "New Drugs From Partners",
+                  "New Drugs From Other Companies",
+                  "Drugs For A Patient",
+                  "Number Of Contracts Order By Start Date",
+                  "Number Of Contracts Order By End Date",
+                  "Doctors With Average Patients Over 50"]:
+            query_menu.add_command(label=q,
+                                   command=partial(self.show_query, q))
+        menubar.add_cascade(label="Find", menu=query_menu)
 
         search_menu = tk.Menu(menubar)
         for s in ["Patient",
@@ -80,10 +62,21 @@ class MainView(ttk.Frame):
                   "Drug",
                   # "Pharmaceuticals",
                   "Prescription"]:
-            search_menu.add_command(label=s, command=partial(self.show_search, s))
+            search_menu.add_command(label=s,
+                                    command=partial(self.__on_search_click, s))
         menubar.add_cascade(label="Search for", menu=search_menu)
 
-        # menubar = create_menu(parent, menudesc)
+        tables_menu = tk.Menu(menubar)
+        for t in ["Patient",
+                  "Doctor",
+                  "Drug",
+                  "Pharmacy",
+                  "Pharmaceutical",
+                  "Prescription"]:
+            tables_menu.add_command(label=t,
+                                    command=partial(self.__on_table_click, t))
+        menubar.add_cascade(labe="View table", menu=tables_menu)
+
         parent.config(menu=menubar)
 
         self.tabs = None
@@ -114,11 +107,11 @@ class MainView(ttk.Frame):
             self.tabs.forget(self.query_tab)
             self.tabs.insert(self.query_tab, query_view, text="Query")
 
-    def show_search(self, search_name):
+    def __on_search_click(self, search_name):
         self._ensure_tabs()
 
         search_type = search_name.lower()
-        if search_type == "pharmaceuticals":
+        if search_type == "pharmaceutical":
             search_type = "bigpharma"
 
         if search_type not in self.search_tabs:
@@ -128,3 +121,24 @@ class MainView(ttk.Frame):
             self.search_tabs[search_type] = self.tabs.index("end") - 1
 
         self.tabs.select(self.search_tabs[search_type])
+
+    def __on_table_click(self, tablename):
+        table = tablename.lower()
+        if table == "pharmaceutical":
+            table = "bigpharma"
+
+        if table in self.table_tabs:
+            self.tabs.select(self.table_tabs[table])
+        else:
+            self.table_request(table)
+
+    def add_table(self, table, tableview):
+        self._ensure_tabs()
+
+        self.tabs.add(tableview, text="Table %s" % table)
+        self.table_tabs[table] = self.tabs.index("end") - 1
+        self.tabs.select(self.table_tabs[table])
+
+    @eventsource
+    def table_request(tablename):
+        pass

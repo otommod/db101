@@ -11,7 +11,7 @@ class NamedTable(Table):
     mapper_factory = None
 
     @classmethod
-    def loopup(cls, name):
+    def lookup(cls, name):
         assert cls.mapper_factory
 
         schema = SCHEMA[name]
@@ -25,7 +25,7 @@ class NamedTable(Table):
 
         self.name = name
         if isinstance(keyfields, (tuple, list)):
-            self.keyfields = keyfields.copy()
+            self.keyfields = tuple(keyfields)
         else:
             self.keyfields = (keyfields,)
 
