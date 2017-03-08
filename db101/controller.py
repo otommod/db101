@@ -93,6 +93,7 @@ class MainController:
         self.root.columnconfigure(0, weight=1)
 
         self.view = MainView(self.root, model)
+        self.root.geometry("683x384")
         self.view.grid(sticky="nsew")
 
         self.root.mainloop()
