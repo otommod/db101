@@ -1,7 +1,9 @@
 import tkinter as tk
 from tkinter import ttk
+from functools import partial
 
 from .querysubview import QuerySubView
+from .searchview import MultiSearchView
 
 
 def nop(*a, **kw):
@@ -53,6 +55,7 @@ class MainView(ttk.Frame):
             },
 
             "Search for": {
+                "__command__": self.show_search,
                 "Doctor": "",
                 "Patient": "",
                 "Drug": "",
@@ -69,7 +72,18 @@ class MainView(ttk.Frame):
             }
         }
 
-        menubar = create_menu(parent, menudesc)
+        menubar = tk.Menu(self.master)
+
+        search_menu = tk.Menu(menubar)
+        for s in ["Patient",
+                  "Doctor",
+                  "Drug",
+                  # "Pharmaceuticals",
+                  "Prescription"]:
+            search_menu.add_command(label=s, command=partial(self.show_search, s))
+        menubar.add_cascade(label="Search for", menu=search_menu)
+
+        # menubar = create_menu(parent, menudesc)
         parent.config(menu=menubar)
 
         self.tabs = None
@@ -92,10 +106,25 @@ class MainView(ttk.Frame):
         QueryView = QuerySubView.lookup(queryname)
         query_view = QueryView(self, self.model)
 
-        if self.query_tab is not None:
+        if self.query_tab is None:
+            self.tabs.add(query_view, text="Query")
+            self.query_tab = self.tabs.index("end")
+        else:
             self.tabs.hide(self.query_tab)
             self.tabs.forget(self.query_tab)
-            self.query_tab = None
+            self.tabs.insert(self.query_tab, query_view, text="Query")
 
-        self.tabs.add(query_view, text="Query")
-        self.query_tab = self.tabs.index("current")
+    def show_search(self, search_name):
+        self._ensure_tabs()
+
+        search_type = search_name.lower()
+        if search_type == "pharmaceuticals":
+            search_type = "bigpharma"
+
+        if search_type not in self.search_tabs:
+            search_view = MultiSearchView.lookup(search_type)
+            self.tabs.add(search_view(self.tabs, self.model),
+                          text="%s search" % search_name)
+            self.search_tabs[search_type] = self.tabs.index("end") - 1
+
+        self.tabs.select(self.search_tabs[search_type])
