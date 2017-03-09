@@ -14,12 +14,12 @@ WHERE CASE
   END
   AND CASE
     WHEN %(include_name)s
-    THEN name LIKE '%%'||%(name)s||'%%' ESCAPE '='
+    THEN name ILIKE '%%'||%(name)s||'%%' ESCAPE '='
     ELSE true
   END
   AND CASE
     WHEN %(include_formula)s
-    THEN formula LIKE '%%'||%(formula)s||'%%' ESCAPE '='
+    THEN formula ILIKE '%%'||%(formula)s||'%%' ESCAPE '='
     ELSE true
   END
   AND CASE
