@@ -19,17 +19,11 @@ class EditableTableView(TableView, EditableMultiColumnList):
         self.fill()
 
     def _get_key(self, item):
-        return {k: self._tree.set(item, k) for k in self.table.keyfields}
+        return {k: self.set(item, k) for k in self.table.keyfields}
 
     def fill(self):
         self._destroy_popup_menu()
         super().fill()
-
-    def update(self, key, changes):
-        try:
-            self.table.set(key, **changes)
-        except ModelError as e:
-            ErrorView(e)
 
     def create(self, new_item):
         try:
@@ -96,7 +90,17 @@ class EditableTableView(TableView, EditableMultiColumnList):
         self.popup = self._create_popup_menu()
         self._place_popup_menu(event.x_root, event.y_root)
 
-    def __on_changed(self, row, col, new_value):
+    def __on_changed(self, row, col, oldvalue):
         colname = self._tree.heading(col, "text")
-        self.update(self._get_key(row),
-                    {colname: new_value})
+        key = self._get_key(row)
+        if colname in self.table.keyfields:
+            key[colname] = oldvalue
+
+        value = self.set(row, col)
+        try:
+            self.table.set(key, **{colname: value})
+        except ModelError as e:
+            # XXX: we must use the internal call here otherwise we'll call
+            # ourself again and BOOM, maximum recursion
+            self._tree.set(row, col, oldvalue)
+            ErrorView(e)

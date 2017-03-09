@@ -59,14 +59,7 @@ class MultiColumnList(ttk.Frame):
             self.view_changed()
 
     def set(self, item, column=None, value=None):
-        if column is not None and value is not None:
-            self.cell_edited(item, column, value)
-        try:
-            return self._tree.set(item, column, value)
-        except tk.TclError:
-            # We shall assume that this means that an observer changed the tree
-            # and now our items and columns are no longer valid.  This is fine.
-            pass
+        return self._tree.set(item, column, value)
 
     def _resize_columns(self):
         """Adjust columns' width if necessary to fit every value."""

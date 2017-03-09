@@ -22,6 +22,13 @@ class EditableMultiColumnList(MultiColumnList):
     def cell_edited(row, col, new_value):
         pass
 
+    def set(self, item, column=None, value=None):
+        old_val = self._tree.set(item, column)
+        result = self._tree.set(item, column, value)
+        if column is not None and value is not None:
+            self.cell_edited(item, column, old_val)
+        return result
+
     def clear(self):
         self.cancel_edit()
         super().clear()
