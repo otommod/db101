@@ -9,6 +9,9 @@ class TableView(MultiColumnList):
         self.table.changed.add_observer(self.fill)
         self.fill()
 
+    def _get_key(self, item):
+        return {k: self.set(item, k) for k in self.table.keyfields}
+
     def fill(self):
         # replace any NULLs with a long dash
         self.clear()

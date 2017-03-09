@@ -8,6 +8,18 @@ class Pharmacy(Model):
         })
 
 
+class CountContractsEndingBefore(Pharmacy.Query):
+    ARGUMENTS = {
+        "our_pharmacy": int,
+        "date": str
+    }
+    RETURNS = ("count",)
+
+class ContractsOrdered(Pharmacy.Query):
+    ARGUMENTS = {"our_pharmacy": int}
+    RETURNS = ("pharmacy_id", "bigpharma_id", "supervisor_id", "start_date",
+               "end_date", "content")
+
 class DrugsOnSale(Pharmacy.Query):
     ARGUMENTS = {
         "our_pharmacy": int

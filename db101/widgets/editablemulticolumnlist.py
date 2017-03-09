@@ -10,10 +10,6 @@ class EditableMultiColumnList(MultiColumnList):
     def __init__(self, parent, columns):
         super().__init__(parent, columns)
 
-        s = ttk.Style()
-        s.configure("Editable.TFrame", background="red")
-        self.configure(style="Editable.TFrame")
-
         self.cell_entry = None
         self._tree.bind("<1>", self.__on_click)
         self._tree.bind("<Double-1>", self.__on_double_click)

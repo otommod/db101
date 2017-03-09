@@ -10,6 +10,18 @@ class PatientCount(General.Query):
     RETURNS = ("count")
 
 
+class CountPatients(General.Query):
+    ARGUMENTS = {}
+    RETURNS = ("count",)
+
+class CountPharmaciesByDrug(General.Query):
+    ARGUMENTS = {}
+    RETURNS = ("name", "count")
+
+class PatientsAndDoctors(General.Query):
+    ARGUMENTS = {}
+    RETURNS = ("name", "doctor", "specialty")
+
 class BigpharmaSearch(General.Query):
     ARGUMENTS = {
         "name": str,
@@ -38,17 +50,3 @@ class DrugsForPatient(General.Query):
 class DoctorsWithOldPatients(General.Query):
     # ARGUMENTS = {}
     RETURNS = ("name",)
-
-
-class CountContractsThatEndBefore(General.Query):
-    ARGUMENTS = {
-        "date": str
-    }
-    RETURNS = ("count",)
-
-
-class CountContractsThatBeginAfter(General.Query):
-    ARGUMENTS = {
-        "date": str
-    }
-    RETURNS = ("count",)

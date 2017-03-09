@@ -1,10 +1,12 @@
+import os.path
 from .driver import PostgresDriver
 from .helpers import namedtuple_wrapper
 from .querybuilder import QueryBuilder
-from .queries import SQLQuery
+from .queries import SQLQuery, SQLSearchQuery
 
 from ...models import NamedTable
 from ...models.model import Model
+from ...helpers import readfile
 
 
 class SQLTable:
@@ -48,7 +50,7 @@ class QueryResult:
         self._params = query.prepare(params)
 
     def get(self, fields):
-        return self._execute(self._query.QUERY, self._params)
+        return self._execute(self._query.query, self._params)
 
 
 class SQLMapper:
@@ -56,6 +58,7 @@ class SQLMapper:
         self.conn = conn
         self.driver = PostgresDriver(conn)
         self.result_wrapper = result_wrapper
+        self._mappings = {}
 
     def _wrap_query(self, query, params=None):
         sqlquery = SQLQuery._registry[type(query).__name__]
@@ -68,9 +71,28 @@ class SQLMapper:
         print("SQLMapper._wrap_query(", query, params, ")")
         return QueryResult(self.driver.execute, query_obj, params)
 
+    def create_model(self, name, desc):
+        model = Model.from_desc(name, desc)
+        for n, q in desc.items():
+            query_name = os.path.basename(os.path.splitext(n)[0])
+            if "__type__" in q and q["__type__"] == "search":
+                qcls = type(SQLSearchQuery)(query_name,
+                                            (SQLSearchQuery,),
+                                            q.copy())
+            else:
+                qcls = type(SQLQuery)(query_name, (SQLQuery,), q.copy())
+            qcls.query = readfile(n)
+            self._mappings[model._queries[query_name]] = qcls
+        return model
+
     def __call__(self, model, *args):
-        if isinstance(model, Model.Query):
-            return self._wrap_query(model, *args)
-        elif isinstance(model, NamedTable):
+        if isinstance(model, NamedTable):
             return SQLTable(self.driver.execute, *args)
+
+        for mq, sq in self._mappings.items():
+            if isinstance(model, mq):
+                return QueryResult(self.driver.execute,
+                                   sq(),
+                                   *args)
+
         raise ValueError("Unkown model type %s" % str(type(model)))

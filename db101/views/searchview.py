@@ -40,7 +40,7 @@ class DrugSearchForm(SearchForm):
         self.formula.grid(row=1, column=1, columnspan=4)
 
         self.sold = tk.StringVar()
-        ttk.Label(self, text=" Sold? ").grid()
+        ttk.Label(self, text="Sold?").grid()
         ttk.Radiobutton(self, variable=self.sold, value="yes",
                         text="Yes").grid(row=2, column=1)
         ttk.Radiobutton(self, variable=self.sold, value="no",
@@ -61,6 +61,27 @@ class DrugSearchForm(SearchForm):
 
         ttk.Button(self, text="Search", command=self._do_search) \
             .grid(row=4, column=5)
+
+    def get(self):
+        vals = super().get()
+        if "sold" in vals:
+            vals["we_sell"] = vals["sold"] == "yes"
+            vals["we_dont_sell"] = vals["sold"] == "no"
+
+        vals["include_price"] = False
+        if "price_min" in vals or "price_max" in vals:
+            vals["include_price"] = True
+
+            if vals["price_min"].isdigit():
+                vals["price_min"] = vals["price_min"]
+            else:
+                vals["price_min"] = float("inf")
+
+            if vals["price_max"].isdigit():
+                vals["price_max"] = vals["price_max"]
+            else:
+                vals["price_max"] = -float("inf")
+        return vals
 
 
 class DoctorSearchForm(SearchForm):

@@ -14,10 +14,6 @@ class MultiColumnList(ttk.Frame):
         super(MultiColumnList, self).__init__(parent)
         self.columns = columns
 
-        s = ttk.Style()
-        s.configure("Multicolumn.TFrame", background="red")
-        self.configure(style="Multicolumn.TFrame")
-
         self._tree = ttk.Treeview(self, show="headings", columns=columns)
         vsb = EventedScrollbar(self, orient="vertical", command=self.yview)
         hsb = EventedScrollbar(self, orient="horizontal", command=self.xview)

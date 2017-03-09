@@ -15,10 +15,8 @@ class SQLQueryMetaclass(RegisteringMetaclass):
         super().__init__(name, bases, attrs)
 
 
-class SQLQuery(metaclass=SQLQueryMetaclass):
+class SQLQuery:
     ESCAPE_CHAR = "="
-    BASE_DIR = "sql"
-    SUFFIX = ".pgsql"
 
     @classmethod
     def _escape(cls, term):
@@ -33,58 +31,74 @@ class SQLQuery(metaclass=SQLQueryMetaclass):
         return cls.ALL_THE_QUERIES[name]()
 
     def prepare(self, given_params):
-        assert all(k in self.ARGUMENTS for k in given_params)
+        # assert all(k in self.arguments for k in given_params)
 
-        params = {k: None for k in self.ARGUMENTS}
+        params = {k: None for k in self.arguments}
         params.update(given_params)
 
         if hasattr(self, "ESCAPE"):
             params.update({k: self._escape(v)
-                           for k, v in params.items() if k in self.ESCAPE})
+                           for k, v in params.items() if k in self.escape})
 
         print("SQLQuery.prepare", params)
         return params
 
 
-class SQLPharmacyQueries(SQLQuery):
-    BASE_DIR = "sql/pharmacy"
+# class CountPatients(SQLQuery):
+#     QUERY_FILE = "sql/count_patients.pgsql"
 
-class CountDrugsOnSale(SQLPharmacyQueries):
-    QUERY_FILE = "sql/pharmacy/count_drugs_on_sale.pgsql"
+# class CountPharmaciesByDrug(SQLQuery):
+#     QUERY_FILE = "sql/count_pharmacies_by_drug.pgsql"
 
-class DrugsOnSale(SQLPharmacyQueries):
-    QUERY_FILE = "sql/pharmacy/drugs_on_sale.pgsql"
-
-class PartneredBigpharmas(SQLPharmacyQueries):
-    QUERY_FILE = "sql/pharmacy/partnered_bigpharmas.pgsql"
-
-class NotPartneredBigpharmas(SQLPharmacyQueries):
-    QUERY_FILE = "sql/pharmacy/not_partnered_bigpharmas.pgsql"
-
-class PotentialDrugs(SQLPharmacyQueries):
-    QUERY_FILE = "sql/pharmacy/potential_drugs.pgsql"
-
-class DrugsFromOtherPharmas(SQLPharmacyQueries):
-    QUERY_FILE = "sql/pharmacy/drugs_from_other_pharmas.pgsql"
+# class PatientsAndDoctors(SQLQuery):
+#     QUERY_FILE = "sql/patients_and_doctors.pgsql"
 
 
-class SQLSearchQuery(SQLPharmacyQueries):
+# class SQLPharmacyQueries(SQLQuery):
+#     pass
+
+# # class CountContractsOfDate(SQLQuery):
+# #     QUERY_FILE = "sql/pharmacy/count_contracts_of_date.pgsql"
+
+# class ContractsOrdered(SQLQuery):
+#     QUERY_FILE = "sql/pharmacy/contracts_ordered.pgsql"
+
+# class CountDrugsOnSale(SQLPharmacyQueries):
+#     QUERY_FILE = "sql/pharmacy/count_drugs_on_sale.pgsql"
+
+# class DrugsOnSale(SQLPharmacyQueries):
+#     QUERY_FILE = "sql/pharmacy/drugs_on_sale.pgsql"
+
+# class PartneredBigpharmas(SQLPharmacyQueries):
+#     QUERY_FILE = "sql/pharmacy/partnered_bigpharmas.pgsql"
+
+# class NotPartneredBigpharmas(SQLPharmacyQueries):
+#     QUERY_FILE = "sql/pharmacy/not_partnered_bigpharmas.pgsql"
+
+# class PotentialDrugs(SQLPharmacyQueries):
+#     QUERY_FILE = "sql/pharmacy/potential_drugs.pgsql"
+
+# class DrugsFromOtherPharmas(SQLPharmacyQueries):
+#     QUERY_FILE = "sql/pharmacy/drugs_from_other_pharmas.pgsql"
+
+
+class SQLSearchQuery(SQLQuery):
     def prepare(self, given_params):
         params = super().prepare(given_params)
         params.update({"include_" + k: (k in given_params)
-                       for k in self.ARGUMENTS})
+                       for k in self.arguments})
         return params
 
-class PatientSearch(SQLSearchQuery):
-    QUERY_FILE = "sql/pharmacy/patient_search.pgsql"
-    ESCAPE = {"name", "doctor", "address", "drug"}
+# class PatientSearch(SQLSearchQuery):
+#     QUERY_FILE = "sql/pharmacy/patient_search.pgsql"
+#     ESCAPE = {"name", "doctor", "address", "drug"}
 
-class DoctorSearch(SQLSearchQuery):
-    QUERY_FILE = "sql/pharmacy/doctor_search.pgsql"
-    ESCAPE = {"name", "specialty", "patient", "drug"}
+# class DoctorSearch(SQLSearchQuery):
+#     QUERY_FILE = "sql/pharmacy/doctor_search.pgsql"
+#     ESCAPE = {"name", "specialty", "patient", "drug"}
 
-class DrugSearch(SQLSearchQuery):
-    QUERY_FILE = "sql/pharmacy/drug_search.pgsql"
+# class DrugSearch(SQLSearchQuery):
+#     QUERY_FILE = "sql/pharmacy/drug_search.pgsql"
 
-class PrescriptionSearch(SQLSearchQuery):
-    QUERY_FILE = "sql/pharmacy/prescription_search.pgsql"
+# class PrescriptionSearch(SQLSearchQuery):
+#     QUERY_FILE = "sql/pharmacy/prescription_search.pgsql"
