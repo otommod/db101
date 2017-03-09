@@ -2,22 +2,34 @@ SCHEMA = {
     "patient": {
         "fields": ("id", "doctor_id", "name", "age", "address"),
         "key": "id",
+        "autoincr": True,
+        "fkeys": {"doctor_id": "doctor"},
+        "searchable": ("name", "address"),
     },
     "doctor": {
         "fields": ("id", "name", "specialty", "exp"),
         "key": "id",
+        "autoincr": True,
+        "searchable": ("name", "specialty"),
     },
     "bigpharma": {
         "fields": ("id", "name", "phone"),
         "key": "id",
+        "autoincr": True,
+        "searchable": ("name",),
     },
     "pharmacy": {
         "fields": ("id", "name", "address", "phone"),
         "key": "id",
+        "autoincr": True,
+        "searchable": ("name", "address"),
     },
     "drug": {
         "fields": ("id", "bigpharma_id", "name", "formula"),
         "key": "id",
+        "autoincr": True,
+        "fkeys": {"bigpharma_id": "bigpharma"},
+        "searchable": ("name",),
     },
     "sell": {
         "fields": ("pharmacy_id", "drug_id", "price"),

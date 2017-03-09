@@ -2,8 +2,10 @@ import tkinter as tk
 from tkinter import ttk
 
 from ..exceptions import ModelError
+from ..models import NamedTable
 from ..widgets import EditableMultiColumnList
 from .errorview import ErrorView
+from .singleselectiontableview import SingleSelectionTableView
 from .tableview import TableView
 
 
@@ -52,11 +54,38 @@ class EditableTableView(TableView, EditableMultiColumnList):
             win_frame.grid()
 
             entries = {}
-            for i, c in enumerate(self.columns):
-                ttk.Label(win, text=c).grid(in_=win_frame, row=i, sticky="e")
-                entry = ttk.Entry(win)
-                entry.grid(in_=win_frame, row=i, column=1, sticky="w")
-                entries[c] = entry
+            for i, c in enumerate(self.table.fields):
+                print(c, self.table.fkeys)
+                if c in self.table.fkeys:
+                    reference = NamedTable.lookup(self.table.fkeys[c])
+                    entry = SingleSelectionTableView(win, reference)
+                    entry.grid(in_=win_frame, row=1, column=0, columnspan=2,
+                               sticky="nsew")
+
+                    # is this the worst code ever? possibly
+                    class hide_get:
+                        def __init__(self, e, r):
+                            self.e = e
+                            self.r = r
+
+                        def get(self):
+                            key = self.e.get()
+                            return key[self.r.keyfields[0]]
+
+                    entries[c] = hide_get(entry, reference)
+
+                elif c in self.table.keyfields and self.table.autoincr:
+                    ttk.Label(win, text=c).grid(in_=win_frame, row=i, sticky="e")
+                    entry = ttk.Entry(win)
+                    entry.insert(0, "will be entered automatically")
+                    entry.configure(state="readonly")
+                    entry.grid(in_=win_frame, row=i, column=1, sticky="w")
+
+                else:
+                    ttk.Label(win, text=c).grid(in_=win_frame, row=i, sticky="e")
+                    entry = ttk.Entry(win)
+                    entry.grid(in_=win_frame, row=i, column=1, sticky="w")
+                    entries[c] = entry
 
             ttk.Button(win,
                        text="Insert",

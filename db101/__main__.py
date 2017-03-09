@@ -24,10 +24,7 @@ root.geometry("683x384")
 root.rowconfigure(0, weight=1)
 root.columnconfigure(0, weight=1)
 
-table_view = db101.views.SelectableTableView(root, patients)
-table_view.grid(row=0, column=0, sticky="nsew")
-
-# view = db101.views.MainView(root, general, pharmacy)
-# view.grid(sticky="nsew")
+view = db101.views.MainView(root, general, pharmacy)
+view.grid(sticky="nsew")
 
 root.mainloop()

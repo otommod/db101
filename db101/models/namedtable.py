@@ -15,15 +15,18 @@ class NamedTable(Table):
         assert cls.mapper_factory
 
         schema = SCHEMA[name]
-        self = cls(name, schema["key"], schema["fields"])
+        self = cls(name, schema["key"], schema["fields"],
+                   schema.get("fkeys"), schema.get("autoincr", False))
         # FIXME: big hack but I can't be bothered right now
         self._mapper = cls.mapper_factory(self, name, schema["key"])
         return self
 
-    def __init__(self, name, keyfields, fields):
+    def __init__(self, name, keyfields, fields, fkeys=None, autoincr=False):
         super().__init__(fields, "")
 
         self.name = name
+        self.fkeys = fkeys or {}
+        self.autoincr = autoincr
         if isinstance(keyfields, (tuple, list)):
             self.keyfields = tuple(keyfields)
         else:
