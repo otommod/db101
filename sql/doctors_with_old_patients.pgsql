@@ -1,6 +1,6 @@
-CREATE VIEW DoctorsWithOldPatients AS
-SELECT name
+SELECT Doctor.name,
+       ROUND(AVG(age), 0) AS avg_age
 FROM Doctor
-WHERE (SELECT AVG(age)
-       FROM Patient
-       WHERE Patient.doctor_id = Doctor.id) > 50;
+     JOIN Patient ON Patient.doctor_id = Doctor.id
+GROUP BY Doctor.id
+HAVING AVG(age) > 50;

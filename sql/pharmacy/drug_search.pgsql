@@ -6,10 +6,10 @@ WHERE CASE
     WHEN %(include_price)s
     THEN (SELECT price
           FROM Sell
-          WHERE Sell.drug_id = Drug.id) > %(min_price)s
+          WHERE Sell.drug_id = Drug.id) > %(price_min)s
      AND (SELECT price
           FROM Sell
-          WHERE Sell.drug_id = Drug.id) < %(max_price)s
+          WHERE Sell.drug_id = Drug.id) < %(price_max)s
     ELSE true
   END
   AND CASE
