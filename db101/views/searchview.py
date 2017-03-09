@@ -47,7 +47,7 @@ class DrugSearchForm(SearchForm):
                         text="No").grid(row=2, column=2)
         ttk.Radiobutton(self, variable=self.sold, value="dont_care",
                         text="Don't care").grid(row=2, column=3, columnspan=2)
-        self.sold.set("dont_care")
+        self.sold.set("yes")
 
         ttk.Label(self, text="Price").grid()
 
