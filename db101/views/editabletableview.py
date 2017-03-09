@@ -59,7 +59,7 @@ class EditableTableView(TableView, EditableMultiColumnList):
                 if c in self.table.fkeys:
                     reference = NamedTable.lookup(self.table.fkeys[c])
                     entry = SingleSelectionTableView(win, reference)
-                    entry.grid(in_=win_frame, row=1, column=0, columnspan=2,
+                    entry.grid(in_=win_frame, row=i, column=0, columnspan=2,
                                sticky="nsew")
 
                     # is this the worst code ever? possibly

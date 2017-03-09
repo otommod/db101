@@ -43,6 +43,7 @@ SCHEMA = {
         "fields": ("pharmacy_id", "bigpharma_id", "supervisor",
                    "start_date", "end_date", "content"),
         "key": ("pharmacy_id", "bigpharma_id"),
+	"fkeys": {"pharmacy_id": "pharmacy", "bigpharma_id": "bigpharma"}
     },
     "activecontracts": {
         "fields": ("pharmacy_id", "bigpharma_id", "supervisor",
