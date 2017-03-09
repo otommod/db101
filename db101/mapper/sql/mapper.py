@@ -1,12 +1,10 @@
 import os.path
-from .driver import PostgresDriver
-from .helpers import namedtuple_wrapper
-from .querybuilder import QueryBuilder
-from .queries import SQLQuery, SQLSearchQuery
 
+from ...helpers import readfile
 from ...models import NamedTable
 from ...models.model import Model
-from ...helpers import readfile
+from .driver import PostgresDriver
+from .querybuilder import QueryBuilder
 
 
 class SQLTable:
@@ -22,10 +20,7 @@ class SQLTable:
         q = self.builder.select(*fields,
                                 order_by=order_by,
                                 descending=descending)
-        # result_type = self._wrapper(fields)
-        data = self._execute(q)
-        # return [result_type(*i) for i in data]
-        return data
+        return self._execute(q)
 
     def set(self, key, updates):
         q = self.builder.update(*updates.keys())
@@ -43,6 +38,43 @@ class SQLTable:
         return self._execute(q, self._prefix_dict(key, "key_"))
 
 
+class SQLQuery:
+    ESCAPE_CHAR = "="
+
+    @classmethod
+    def _escape(cls, term):
+        if term is None:
+            return term
+        return (term.replace(cls.ESCAPE_CHAR, 2*cls.ESCAPE_CHAR)
+                    .replace("%", cls.ESCAPE_CHAR + "%")
+                    .replace("_", cls.ESCAPE_CHAR + "_"))
+
+    @classmethod
+    def by_name(cls, name):
+        return cls.ALL_THE_QUERIES[name]()
+
+    def prepare(self, given_params):
+        # assert all(k in self.arguments for k in given_params)
+
+        params = {k: None for k in self.arguments}
+        params.update(given_params)
+
+        if hasattr(self, "ESCAPE"):
+            params.update({k: self._escape(v)
+                           for k, v in params.items() if k in self.escape})
+
+        print("SQLQuery.prepare", params)
+        return params
+
+
+class SQLSearchQuery(SQLQuery):
+    def prepare(self, given_params):
+        params = super().prepare(given_params)
+        params.update({"include_" + k: (k in given_params)
+                       for k in self.arguments})
+        return params
+
+
 class QueryResult:
     def __init__(self, execute, query, params=None):
         self._execute = execute
@@ -54,22 +86,10 @@ class QueryResult:
 
 
 class SQLMapper:
-    def __init__(self, conn, result_wrapper=namedtuple_wrapper):
+    def __init__(self, conn):
         self.conn = conn
         self.driver = PostgresDriver(conn)
-        self.result_wrapper = result_wrapper
         self._mappings = {}
-
-    def _wrap_query(self, query, params=None):
-        sqlquery = SQLQuery._registry[type(query).__name__]
-
-        # FIXME
-        query_obj = sqlquery()
-        query_obj.ARGUMENTS = query.ARGUMENTS
-        query_obj.RETURNS = query.RETURNS
-
-        print("SQLMapper._wrap_query(", query, params, ")")
-        return QueryResult(self.driver.execute, query_obj, params)
 
     def create_model(self, name, desc):
         model = Model.from_desc(name, desc)
