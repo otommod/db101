@@ -19,11 +19,9 @@ class MainView(ttk.Frame):
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
 
-        s = ttk.Style()
-        s.configure("Main.TFrame", background="black")
-        bg_image = tk.PhotoImage(file="./basemasterx3000.png")
-
-        self.bg_label = ttk.Label(self, style="Main.TFrame")
+        self.bg_image = tk.PhotoImage(file="./basemasterx3000.png")
+        self.bg_label = ttk.Label(self, image=self.bg_image,
+                                  background="black", anchor="center")
         self.bg_label.grid(sticky="nsew")
 
         menubar = tk.Menu(self.master)
