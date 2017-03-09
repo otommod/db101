@@ -91,7 +91,7 @@ class EditableTableView(TableView, EditableMultiColumnList):
                        text="Insert",
                        command=lambda: self.create(
                            {c: e.get() for c, e in entries.items()})
-                       ).grid(in_=win_frame, sticky="e")
+                       ).grid(in_=win_frame, column=1, sticky="e")
 
         if not selection:
             popup.add_command(label="Insert", command=insert)
