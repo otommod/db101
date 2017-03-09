@@ -3,19 +3,19 @@ SELECT name,
 FROM BigPharma
 WHERE CASE
     WHEN %(include_name)s
-    THEN BigPharma.name LIKE '%%'||%(name)s||'%%' ESCAPE '='
+    THEN BigPharma.name ILIKE '%%'||%(name)s||'%%' ESCAPE '='
     ELSE true
   END
   AND CASE
     WHEN %(include_phone)s
-    THEN BigPharma.phone LIKE '%%'||%(phone)s||'%%' ESCAPE '='
+    THEN BigPharma.phone ILIKE '%%'||%(phone)s||'%%' ESCAPE '='
     ELSE true
   END
   AND CASE
     WHEN %(include_drug)s
     THEN BigPharma.id = ANY(SELECT bigpharma_id
                             FROM Drug
-                            WHERE name LIKE '%%'||%(drug)s||'%%' ESCAPE '=')
+                            WHERE name ILIKE '%%'||%(drug)s||'%%' ESCAPE '=')
     ELSE true
   END
   AND CASE
