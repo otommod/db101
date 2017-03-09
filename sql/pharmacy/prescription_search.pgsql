@@ -16,14 +16,14 @@ FROM Patient,
           WHEN %(include_doctor)s
           THEN doctor_id = ANY(SELECT id
                                FROM Doctor
-                               WHERE name LIKE '%%'||%(doctor)s||'%%' ESCAPE '=')
+                               WHERE name ILIKE '%%'||%(doctor)s||'%%' ESCAPE '=')
           ELSE true
         END
         AND CASE
           WHEN %(include_patient)s
           THEN patient_id = ANY(SELECT id
                                 FROM Patient
-				WHERE name LIKE '%%'||%(patient)s||'%%' ESCAPE '=')
+				WHERE name ILIKE '%%'||%(patient)s||'%%' ESCAPE '=')
           ELSE true
         END
 	AND CASE
@@ -35,7 +35,7 @@ FROM Patient,
           WHEN %(include_drug)s
           THEN drug_id = ANY(SELECT id
                              FROM Drug
-                             WHERE name LIKE '%%'||%(drug)s||'%%' ESCAPE '=')
+                             WHERE name ILIKE '%%'||%(drug)s||'%%' ESCAPE '=')
           ELSE true END)
      ) AS prescription_shit
 WHERE prescription_shit.patient_id = Patient.id
