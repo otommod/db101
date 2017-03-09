@@ -4,6 +4,8 @@ from .table import Table
 
 
 class Model():
+    mapper_factory = None
+
     class Query():
         def __init__(self, name, model):
             # self.name = name
@@ -32,8 +34,9 @@ class Model():
             subcls._queries[query_name] = qcls
         return subcls
 
-    def __init__(self, mapper, baked_params=None):
-        self._mapper = mapper
+    def __init__(self, baked_params=None):
+        self._mapper = self.mapper_factory
+
         self._baked_params = frozenset((baked_params or {}).items())
         for n, q in self._queries.items():
             setattr(self, n, q(n, self))

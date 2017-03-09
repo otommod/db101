@@ -7,13 +7,15 @@ from .editabletableview import EditableTableView
 from .tableview import TableView
 from .querysubview import QuerySubView
 from .searchview import SearchView
+from .singleselectiontableview import SingleSelectionTableView
 
 
 class MainView(ttk.Frame):
-    def __init__(self, parent, general_model, pharmacy):
+    def __init__(self, parent, general_model, pharmacy_cls):
         super().__init__(parent)
         self.general_model = general_model
-        self.pharmacy = pharmacy
+        self.pharmacy_cls = pharmacy_cls
+        self.pharmacy = None
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
 
@@ -39,30 +41,13 @@ class MainView(ttk.Frame):
                                                      self.general_model))
         menubar.add_cascade(label="General info", menu=general_menu)
 
-        query_menu = tk.Menu(menubar, tearoff=False)
-        for q in ["Our customers",
-                  "How many drugs do we sell?",
-                  "What drugs do we sell?",
-                  "What drugs could we sell?",
-                  "Contracts closest due",
-                  "Contracts that end before...",
-                  "Partnered Pharmaceuticals",
-                  "Not partnered Pharmaceuticals",
-                  "Potential future partners"]:
-            query_menu.add_command(label=q,
-                                   command=partial(self.__on_query_click, q,
-                                                   self.pharmacy))
-        menubar.add_cascade(label="Our Pharmacy", menu=query_menu)
+        self.query_menu = tk.Menu(menubar, tearoff=False)
+        self.query_menu.add_command(label="Login", command=self.login_form)
+        menubar.add_cascade(label="Our Pharmacy", menu=self.query_menu)
 
-        search_menu = tk.Menu(menubar, tearoff=False)
-        for s in ["Patient",
-                  "Doctor",
-                  "Drug",
-                  # "Pharmaceuticals",
-                  "Prescription"]:
-            search_menu.add_command(label=s,
-                                    command=partial(self.__on_search_click, s))
-        menubar.add_cascade(label="Search for", menu=search_menu)
+        self.search_menu = tk.Menu(menubar, tearoff=False)
+        self.search_menu.add_command(label="Login", command=self.login_form)
+        menubar.add_cascade(label="Search for", menu=self.search_menu)
 
         tables_menu = tk.Menu(menubar, tearoff=False)
         for t in ["Patient",
@@ -85,6 +70,51 @@ class MainView(ttk.Frame):
         self.query_frame = ttk.Frame(self)
         self.table_tabs = {}
         self.search_tabs = {}
+
+    def login_form(self):
+        win = tk.Toplevel(self.master)
+        win.title("Pharmacy login")
+
+        entry = SingleSelectionTableView(win,
+                                         models.NamedTable.lookup("pharmacy"))
+        entry.grid()
+
+        def login(e):
+            pharmid = entry.get()
+            win.destroy()
+            self.login(pharmid["id"])
+
+        win.bind("<Escape>", lambda e: win.destroy())
+        entry._tree.bind("<Double-1>", login, add="+")
+
+    def login(self, pharmacy_id):
+        self.pharmacy = self.pharmacy_cls({
+            "our_pharmacy": pharmacy_id  # this is so leaky it's not even an
+        })                               # abstraction anymore
+
+        # excuse my code... it's late, I haven't slept in days and the deadline
+        # is tommorow
+        self.query_menu.delete(0)
+        for q in ["Our customers",
+                  "How many drugs do we sell?",
+                  "What drugs do we sell?",
+                  "What drugs could we sell?",
+                  "Contracts closest due",
+                  "Contracts that end before...",
+                  "Partnered Pharmaceuticals",
+                  "Not partnered Pharmaceuticals",
+                  "Potential future partners"]:
+            self.query_menu.add_command(label=q, command=partial(
+                self.__on_query_click, q, self.pharmacy))
+
+        self.search_menu.delete(0)
+        for s in ["Patient",
+                  "Doctor",
+                  "Drug",
+                  # "Pharmaceuticals",
+                  "Prescription"]:
+            self.search_menu.add_command(label=s, command=partial(
+                self.__on_search_click, s))
 
     def _ensure_tabs(self):
         if self.tabs is None:
