@@ -13,7 +13,7 @@ WHERE Patient.doctor_id = Doctor.id
                                            WHERE pharmacy_id = %(our_pharmacy)s))
   AND CASE
     WHEN %(include_name)s
-    THEN Patient.name LIKE '%%'||%(name)s||'%%' ESCAPE '='
+    THEN Patient.name ILIKE '%%'||%(name)s||'%%' ESCAPE '='
     ELSE true
   END
   AND CASE
@@ -30,12 +30,12 @@ WHERE Patient.doctor_id = Doctor.id
     WHEN %(include_doctor)s
     THEN doctor_id = ANY(SELECT id
                          FROM Doctor
-                         WHERE name LIKE '%%'||%(doctor)s||'%%' ESCAPE '=')
+                         WHERE name ILIKE '%%'||%(doctor)s||'%%' ESCAPE '=')
     ELSE true
   END
   AND CASE
     WHEN %(include_address)s
-    THEN address LIKE '%%'||%(address)s||'%%' ESCAPE '='
+    THEN address ILIKE '%%'||%(address)s||'%%' ESCAPE '='
     ELSE true
   END
   AND CASE
